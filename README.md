@@ -1,5 +1,5 @@
 # Data Utility Resolution Engine
-The goal of the component consists in filtering bluprints and raking them, based on the application developer requirements
+The goal of the component consists in filtering and ranking blueprints and raking them, based on the application developer requirements
 
 ## Input
 * application developer requirements
