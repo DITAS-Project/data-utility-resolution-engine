@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>test client interface</title>
+</head>
+<body>
+  <B>Filter blueprint</B>
+  <br/>
+  List of blueprints:
+  <br/>
+  <textarea name="blueprints" cols=80 rows=10 form="filterBlueprintForm">test</textarea>
+  <br/>
+  Application developer requirements:
+  <br/>
+  <textarea name="requirements" cols=80 rows=10 form="filterBlueprintForm">
+{    
+	"userRequirements":
+    {
+        "FunctionalRequirements":
+        {
+            "Context": "Health data",
+            "URIMethod":"http://google.com/method",
+            "output":
+            [
+                {
+                    "attributeName":"Blodtest",
+                    "type":"string",
+                    "tags":["blod test", "platelet", "women"]
+                },
+                {
+                    "attributeName":"namePatient",
+                    "type":"string"
+                },
+                {
+                    "attributeName":"surnamePatient",
+                    "type":"string"
+                }
+            ]
+        },
+		"NonFunctionalRequirements":
+        {
+            "properties":
+            [
+                {
+                    "ID": "1",
+                    "name": "Service available", 
+                    "constraints": 
+                    [
+                        {
+                            "name":"T.avail.",
+                            "boundary": "range",
+                            "unit": "percentage",
+                            "lowerLimit":"95",
+                            "upperLimit":"99"
+                        }
+                    ]
+                },
+                {
+                    "ID": "2",
+                    "name": "Fast data process",
+                    "constraints":
+                    [
+                        {
+                            "name": "ResponceTime",
+                            "limit":"95",
+                            "boundary": "lower",
+                            "unit": "seconds"
+                        }
+                    ]
+                },
+                {
+                    "ID": "3",
+                    "name": "Fast data streaming",
+                    "constraints":
+                    [
+                        {
+                            "name": "troughput",
+                            "limit":"10",
+                            "boundary": "lower",
+                            "unit": "MB/ms"
+                        }
+                    ]
+                },
+                {
+                    "ID": "4",
+                    "name": "Service scalable",
+                    "constraints":
+                    [
+                        {
+                            "name": "Break point proximity",
+                            "limit":"0.9",
+                            "boundary": "upper",
+                            "unit": "NONE"
+                        }
+                    ]                
+                }
+            ],
+            "goalTree":
+            {
+                "type":"AND",
+                "children":
+                [
+                    {
+                        "type":"OR",
+                        "children":["1","4"]
+                    },
+                    {
+                        "type":"OR",
+                        "children":["2","3"]
+                    }
+                ]
+            }      
+        }
+    }
+}
+
+  </textarea>
+  <form action="api/filterBlueprints" method="post" id="filterBlueprintForm">
+    <input type="submit" value="Submit">
+  </form>
+</body>
+</html>

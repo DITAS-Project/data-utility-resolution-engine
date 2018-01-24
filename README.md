@@ -9,7 +9,7 @@ The goal of the component consists in filtering bluprints and raking them, based
 * list of blueprints 
 
 ## list of functionalities
-* filter blueprints
+* /api/filterBlueprints
   * description: the method receives in input a list of blueprints and outputs a filtered list of blueprints which satisfy the application developer requirements.
   * caller Resolution engine
   * input
@@ -23,3 +23,13 @@ The goal of the component consists in filtering bluprints and raking them, based
 Node.js
 
 ## Requirements
+In order to work, this component requires the following modules to be installed:
+
+* express
+* body-parser
+
+## Execution
+To launch this component, execute the following command:
+* node main.js [port]
+
+[port] specifies the HTTP port number where the component will listen to requests. If not specified, default value 8081 will be used.
