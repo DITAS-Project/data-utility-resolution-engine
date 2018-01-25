@@ -1,0 +1,64 @@
+swagger: "2.0"
+info:
+  description: "The goal of the component consists in filtering bluprints and raking them, based on the application developer requirements. Source code in [github](https://github.com/DITAS-Project/data-utility-resolution-engine)"
+  version: "0.0.1"
+  title: "Data Utility Resolution Engine"
+  license:
+    name: "License TBD"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "TBD"
+basePath: "/"
+schemes:
+- "http"
+paths:
+  /filterBlueprints:
+    post:
+      summary: "Filter and rank blueprints"
+      description: "The only API of this method filters a list of blueprints (input) that are not complaint with the application requirements (input), and rank them."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Input"
+        description: "Application requirements and list of VDC blueprints. Both imput marged in the same body because at most 1 body parameter can be defined. [Click here for more info](https://github.com/swagger-api/swagger-editor/issues/889)"
+        required: true
+        schema:
+          $ref: "#/definitions/input"
+
+      responses:
+        405:
+          description: "Invalid input"
+        200:
+          description: "List of filtered and ranked blueprints"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/blueprint"
+
+definitions:
+  input:
+    type: "object"
+    properties:
+      blueprints:
+        type: "array"
+        items: 
+          $ref: "#/definitions/blueprint"
+      applicationRequirements:
+        $ref: "#/definitions/applicationRequirements"
+
+  blueprint:
+    type: "object"
+    properties:
+      TBD:
+        type: "integer"
+        format: "int64"
+
+      
+  applicationRequirements:
+    type: "object"
+    properties:
+      TBD:
+        type: "integer"
+        format: "int64"
