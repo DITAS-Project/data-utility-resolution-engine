@@ -8,7 +8,7 @@ The goal of the component consists in filtering and ranking blueprints and rakin
 ## Output
 * list of blueprints 
 
-## list of functionalities
+## List of functionalities
 * /api/filterBlueprints
   * description: the method receives in input a list of blueprints and outputs a filtered list of blueprints which satisfy the application developer requirements.
   * caller Resolution engine
