@@ -17,84 +17,101 @@
   Application developer requirements:
   <br/>
   <textarea name="requirements" cols=80 rows=10 form="filterBlueprintForm">
-{    
-	"userRequirements":
+{
+    "dataUtilityAndSecurity":
     {
-        "FunctionalRequirements":
-        {
-            "Context": "Health data",
-            "URIMethod":"http://google.com/method",
-            "output":
-            [
-                {
-                    "attributeName":"Blodtest",
-                    "type":"string",
-                    "tags":["blod test", "platelet", "women"]
-                },
-                {
-                    "attributeName":"namePatient",
-                    "type":"string"
-                },
-                {
-                    "attributeName":"surnamePatient",
-                    "type":"string"
-                }
-            ]
-        },
-		"NonFunctionalRequirements":
+        "dataUtility":
         {
             "properties":
             [
                 {
-                    "ID": "1",
+                    "id": "1",
                     "name": "Service available", 
-                    "constraints": 
+                    "weight":"1",
+                    "metrics": 
                     [
                         {
-                            "name":"T.avail.",
-                            "boundary": "range",
+                            "name":"Availability",
                             "unit": "percentage",
                             "lowerLimit":"95",
-                            "upperLimit":"99"
+                            "upperLimit":"99",
+                            "utilityFunction":"maximize",
+                            "additionalInfo":
+                            {
+                                "tbd":"TBD"
+                            }
                         }
                     ]
                 },
                 {
-                    "ID": "2",
+                    "id": "2",
                     "name": "Fast data process",
-                    "constraints":
+                    "weight":"1",
+                    "metrics":
                     [
                         {
                             "name": "ResponceTime",
-                            "limit":"95",
-                            "boundary": "lower",
-                            "unit": "seconds"
+                            "upperLimit":"1",
+                            "unit": "second",
+                            "utilityFunction":"minimize",
+                            "additionalInfo":
+                            {
+                                "tbd":"TBD"
+                            }
                         }
                     ]
                 },
                 {
-                    "ID": "3",
-                    "name": "Fast data streaming",
-                    "constraints":
+                    "id": "3",
+                    "name": "Data volume",
+                    "weight":"1",
+                    "metrics":
                     [
                         {
-                            "name": "troughput",
-                            "limit":"10",
-                            "boundary": "lower",
-                            "unit": "MB/ms"
+                            "name": "volume",
+                            "value":"10000",
+                            "unit": "tuple",
+                            "utilityFunction":"maximize",
+                            "additionalInfo":
+                            {
+                                "tbd":"TBD"
+                            }
                         }
                     ]
                 },
                 {
-                    "ID": "4",
-                    "name": "Service scalable",
-                    "constraints":
+                    "id": "4",
+                    "name": "Temporal validity",
+                    "weight":"1",
+                    "metrics":
                     [
                         {
-                            "name": "Break point proximity",
-                            "limit":"0.9",
-                            "boundary": "upper",
-                            "unit": "NONE"
+                            "name": "Timeliness",
+                            "upperLimit":"0.6",
+                            "unit": "NONE",
+                            "utilityFunction":"maximize",
+                            "additionalInfo":
+                            {
+                                "tbd":"TBD"
+                            }
+                        }
+                    ]                
+                },
+                {
+                    "id": "5",
+                    "name": "Amount of Data",
+                    "weight":"1",
+                    "metrics":
+                    [
+                        {
+                            "name": "Process completeness",
+                            "lowerLimit":"90",
+                            "unit": "percentage",
+                            "utilityFunction":"maximize",
+                            "additionalInfo":
+                            {
+                                "tbd":"TBD"
+                            }
                         }
                     ]                
                 }
@@ -109,14 +126,96 @@
                         "children":["1","4"]
                     },
                     {
-                        "type":"OR",
-                        "children":["2","3"]
+                        "type":"AND",
+                        "children":
+                        [
+                            "2",
+                            {
+                                "type":"OR",
+                                "children":
+                                [
+                                    "3",
+                                    "5"
+                                ]
+                            }
+                        ]
                     }
                 ]
             }      
-        }
+        },
+        "security":
+       {
+           "properties":
+           [   
+               {
+                   "id": "1",
+                   "name": "encryption",
+                   "properties":[
+                       {
+                           "name":"Algorithm",
+                           "unit":"enum",
+                           "value":"AES"
+                       },
+                       {
+                           "name":"Keylength",
+                           "unit":"number",
+                           "lowerLimit":"128"
+                       }  
+                   ]
+               },
+               {
+                   "id": "2",
+                   "name": "tracing",
+                   "properties":
+                   [
+                       {
+                           "name":"level",
+                           "unit":"enum",
+                           "value":"datasource"
+                       },
+                       {
+                           "name":"samplerate",
+                           "unit":"percentage",
+                           "lowerLimit":"99",
+                           "upperLimit":"100"
+                       }  
+                   ]
+               },
+               {
+                   "id": "3",
+                   "name": "acl",
+                   "properties":
+                   [
+                       {
+                           "name":"kind",
+                           "unit":"enum",
+                           "value":"rolebased"
+                       },
+                       {
+                           "name":"role",
+                           "unit":"enum",
+                           "value":"readOnly"
+                       },
+                       {
+                           "name":"role",
+                           "unit":"enum",
+                           "value":"readNonPersonal"
+                       } 
+                   ]
+               }
+           ],
+           "identification":
+           {
+               "app":"SIGNATUREHASH",
+               "purposes":{"tbd":"representation of available purposes"},
+               "Guarantors":{"tbd":"trusted authorities (eg. government, institute etc.)"}
+           }
+       }
+
     }
 }
+
+
 
   </textarea>
   <form action="api/filterBlueprints" method="post" id="filterBlueprintForm">

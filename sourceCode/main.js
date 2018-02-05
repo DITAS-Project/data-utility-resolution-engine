@@ -29,24 +29,25 @@ app.post('/api/filterBlueprints', function (req, res) {
 	//parse list of service blueprints
 	var blueprints = req.body.blueprints.toString();
 	//parse and extract non-functional properties from requirements
-	var properties = JSON.parse(req.body.requirements.toString()).userRequirements.NonFunctionalRequirements.properties;
+	var properties = JSON.parse(req.body.requirements.toString()).dataUtilityAndSecurity.dataUtility.properties;
 	//parse and extract goal model tree from requirements
-	var goalTree = JSON.parse(req.body.requirements.toString()).userRequirements.NonFunctionalRequirements.goalTree;
+	var goalTree = JSON.parse(req.body.requirements.toString()).dataUtilityAndSecurity.dataUtility.goalTree;
 	var result = [];
 	for (var blueprint in blueprints){
 		//verify if current blueprint satisfies non-functional requirements
 		if (checkNode(blueprints[blueprint], properties, goalTree)) {
-			console.log(blueprints[blueprint] + 'selected');
+			console.log("blueprint: " + blueprints[blueprint] + ' selected'+ "\n");
 			result.push(blueprints[blueprint]);
 		} else {
-			console.log(blueprints[blueprint] + 'discarded');
+			console.log("blueprint: " + blueprints[blueprint] + ' discarded' + "\n");
 		}
 	}
     res.end(result.toString());
 })
 
 function checkNode(blueprint, properties, node) {
-	console.log(node);
+	console.log("checkNode, node:");
+    console.log(node);
 	//current node is not a leaf
 	if (node.children != undefined) {
 		var ret = false;
