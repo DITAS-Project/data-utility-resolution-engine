@@ -19,7 +19,7 @@ The goal of the component consists in filtering and ranking blueprints and rakin
     * list of blueprints 
   
 ## API definition
-API definition in [SwagguerHub](https://app.swaggerhub.com/apis/ditas-project/DataUtilityResolutionEngine/0.0.1).
+API definition in [SwaggerHub](https://app.swaggerhub.com/apis/ditas-project/DataUtilityResolutionEngine/0.0.1).
 
 ## Implementation language
 Node.js
