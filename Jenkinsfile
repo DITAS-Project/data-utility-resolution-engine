@@ -9,13 +9,13 @@ pipeline {
     stage('Build') {
       steps {
         sh 'echo "Building! new"'
-        sh 'npm install'
+        sh 'npm start --prefix src'
       }
     }
     stage('Deploy') {
       steps {
         echo 'Deploying!'
-        sh 'npm start'
+        sh 'npm start --prefix src'
       }
     }
   }
