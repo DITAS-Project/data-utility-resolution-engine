@@ -9,7 +9,7 @@ pipeline {
     stage('Build') {
       steps {
         sh 'echo "Building! new"'
-        sh 'npm start --prefix src'
+        sh 'npm install --prefix src'
       }
     }
     stage('Deploy') {
