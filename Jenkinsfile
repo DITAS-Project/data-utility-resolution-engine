@@ -15,7 +15,7 @@ pipeline {
     stage('Deploy') {
       steps {
         echo 'Deploying!'
-        sh 'npm start --prefix src'
+        //sh 'npm start --prefix src'
       }
     }
   }
