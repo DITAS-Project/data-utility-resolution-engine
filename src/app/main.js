@@ -1,3 +1,8 @@
+/*
+ * Data Utility Resolution Engine (DURE) module
+ * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
+*/
+
 var express = require('express');
 var app = express();
 app.use(express.static(__dirname));
@@ -40,16 +45,32 @@ app.post('/api/rankBlueprints', function (req, res) {
         var generalMetrics = blueprint.DATA_MANAGEMENT.generalMetrics;
         for (var method in methods) {
             if (methods[method].name === methodName) {
+                //compute data utility score
                 var dataUtilityScore = computeNodeScore(requirements.goalTrees.dataUtility.goals,
                     requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility);
+                //compute security score
                 var securityScore = computeNodeScore(requirements.goalTrees.security.goals,
                     requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security);
+                //compute privacy score
                 var privacyScore = computeNodeScore(requirements.goalTrees.privacy.goals,
                     requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy);
+                //compute global score
                 var globalScore = computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
                 if (globalScore > 0) {
+                    //return blueprint with rank and pruned goal trees
                     var item = {
-                        score: globalScore, method: methodName, blueprint: blueprint.UUID
+                        score: globalScore,
+                        method: methodName,
+                        blueprint: blueprint.UUID,
+                        //prune data utility goal tree
+                        dataUtilityGoalTree: pruneGoalTree(requirements.goalTrees.dataUtility.goals,
+                            requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility),
+                        //prune security goal tree
+                        securityGoalTree: pruneGoalTree(requirements.goalTrees.security.goals,
+                            requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security),
+                        //prune privacy goal tree
+                        privacyGoalTree: pruneGoalTree(requirements.goalTrees.privacy.goals,
+                            requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy)
                     };
                     resultSet.push(item);
                 }
@@ -59,14 +80,58 @@ app.post('/api/rankBlueprints', function (req, res) {
     res.end(resultSet.toString());
 })
 
+function pruneGoalTree(goalList, sourceNode, metrics, generalMetrics) {
+    console.log("checkNode, node:");
+    console.log(sourceNode);
+    var ret = 0;
+    var targetNode = {};
+    targetNode.type = sourceNode.type;
+    targetNode.leaves = [];
+    targetNode.children = [];
+
+    for (var child in sourceNode.children) {
+        //recursively invoke function for each child node
+        ret = pruneGoalTree(goalList, node.children[child], metrics, generalMetrics);
+        // if a child node is accepted, then add it to the pruned tree
+        if (ret !== undefined) {
+            targetNode.children.push(ret);
+        } else {
+            //when current node type is AND, the first child node that is discarded makes the current node also discarded
+            if (sourceNode.type === 'AND') {
+                return undefined;
+            }
+        }
+    }
+    for (var leaf in sourceNode.leaves) {
+        //recursively invoke function for each leaf goal
+        ret = assessGoal(goalList, sourceNode.leaves[leaf], metrics, generalMetrics);
+        // if a leaf goal is accepted, then add it to the pruned tree
+        if (ret !== 0) {
+            targetNode.leaves.push(sourceNode.leaves[leaf]);
+        } else {
+            //when current node type is AND, the first leaf goal that is discarded makes the current node also discarded
+            if (sourceNode.type === 'AND') {
+                return undefined;
+            }
+        }
+    }
+    if (targetNode.leaves.length === 0 && targetNode.children.length === 0) {
+        //if current node has no child node and no leaf goal accepted, then discard it
+        return undefined;
+    } else {
+        //return result to parent node
+        return targetNode;
+    }
+}
+
 function computeNodeScore(goalList, node, metrics, generalMetrics) {
 	console.log("checkNode, node:");
     console.log(node);
 	    var scoreboard = [];
         var ret = 0;
 		for (var child in node.children) {
-			//recursively invoke function for each child nodes
-            ret = computeNodeScore(blueprint, goalList, node.children[child]);
+            //recursively invoke function for each child node
+            ret = computeNodeScore(goalList, node.children[child], metrics, generalMetrics);
 			//when current node type is AND, the first child node that is not satisfied makes the current node also not satisfied
             if (ret === 0 && node.type === 'AND') {
                 return 0;
@@ -75,9 +140,9 @@ function computeNodeScore(goalList, node, metrics, generalMetrics) {
             }
         }
         for (var leaf in node.leaves) {
-            //recursively invoke function for each child nodes
+            //recursively invoke function for each leaf goal
             ret = assessGoal(goalList, node.leaves[leaf], metrics, generalMetrics);
-            //when current node type is AND, the first child node that is not satisfied makes the current node also not satisfied
+            //when current node type is AND, the first leaf goal that is not satisfied makes the current node also not satisfied
             if (ret === 0 && node.type === 'AND') {
                 return 0;
             } else {
@@ -127,6 +192,7 @@ function assessGoal(goalList, goalName, metrics, generalMetrics) {
 }
 
 function assessMetric(goalMetric, blueprintMetrics) {
+    //solo per data quality, su security e privacy invocare ws TUB
     for (var goalProperty in goalMetric.properties) {
         var fulfilled = false;
         for (var metric in blueprintMetrics) {
