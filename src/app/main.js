@@ -59,20 +59,21 @@ app.post('/api/rankBlueprints', function (req, res) {
                 //compute global score
                 var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
                 if (globalScore > 0) {
+                    //prune requirements goal tree
+                    var prunedRequirements = JSON.parse(JSON.stringify(requirements));
+                    prunedRequirements.goalTrees.dataUtility.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.dataUtility.goals,
+                        requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility);
+                    prunedRequirements.goalTrees.security.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.security.goals,
+                        requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security);
+                    prunedRequirements.goalTrees.privacy.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.privacy.goals,
+                        requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy);
+
                     //return blueprint with rank and pruned goal trees
                     var item = {
-                        score: globalScore,
-                        method: methodName,
                         blueprint: blueprint.UUID,
-                        //prune data utility goal tree
-                        dataUtilityGoalTree: treePruner.pruneGoalTree(requirements.goalTrees.dataUtility.goals,
-                            requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility),
-                        //prune security goal tree
-                        securityGoalTree: treePruner.pruneGoalTree(requirements.goalTrees.security.goals,
-                            requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security),
-                        //prune privacy goal tree
-                        privacyGoalTree: treePruner.pruneGoalTree(requirements.goalTrees.privacy.goals,
-                            requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy)
+                        method: methodName,
+                        score: globalScore,
+                        fulfilledRequirements: prunedRequirements
                     };
                     resultSet.push(item);
                 }

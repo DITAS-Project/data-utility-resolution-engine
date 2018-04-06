@@ -23,7 +23,7 @@ exports.assessGoal = function assessGoal(goalList, goalName, metrics, generalMet
                     }
                 }
                 //if the metric was not fulfilled (or not found), also the whole goal is not
-                if (!assessMetric(goalList[goal].metrics[goalMetric], compatibleMetrics)) {
+                if (!module.exports.assessMetric(goalList[goal].metrics[goalMetric], compatibleMetrics)) {
                     return 0;
                 }
             }
@@ -42,8 +42,8 @@ exports.assessMetric = function assessMetric(goalMetric, blueprintMetrics) {
         var fulfilled = false;
         for (var metric in blueprintMetrics) {
             for (var blueprintProperty in blueprintMetrics[metric].properties) {
-                if (goalMetric.properties[property].name === blueprintMetrics[metric].properties[blueprintProperty].name) {
-                    if (assessProperty(goalMetric.properties[goalProperty], blueprintMetrics[metric].properties[blueprintProperty])) {
+                if (goalMetric.properties[goalProperty].name === blueprintMetrics[metric].properties[blueprintProperty].name) {
+                    if (module.exports.assessProperty(goalMetric.properties[goalProperty], blueprintMetrics[metric].properties[blueprintProperty])) {
                         fulfilled = true;
                     }
                 }
