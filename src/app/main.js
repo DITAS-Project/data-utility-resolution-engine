@@ -10,9 +10,9 @@ var bodyParser = require('body-parser');
 var ranker = require("./ranker");
 var treePruner = require("./treepruner");
 
-var port = 8081;
+var port = 8080;
 if(process.argv.length > 2) {
-	//HTTP port can be specified as application parameter. Otherwise, port 8081 is used.
+	//HTTP port can be specified as application parameter. Otherwise, port 8080 is used.
 	var inputPort = process.argv[2];
 	if(inputPort > 8000 && inputPort < 65536){
 		port = inputPort;
@@ -39,7 +39,7 @@ app.post('/api/rankBlueprints', function (req, res) {
     var requirements = req.body.requirements;
     var list = req.body.list;
     var resultSet = [];
-    //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello)
+    //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodName = list[listitem].method;

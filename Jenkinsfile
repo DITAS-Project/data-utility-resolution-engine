@@ -3,8 +3,9 @@ pipeline {
 	stages {
 		stage('Build - test') {
 			agent {
-				dockerfile {
-                    filename 'Dockerfile.build'
+				docker {
+                    image 'node:9-alpine'
+					// TODO some cache to avoid npm sintall on every execution?
 				}
 			}
 			steps {
