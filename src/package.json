@@ -1,9 +1,10 @@
 {
-  "name": "dure",
+  "name": "data-utility-resolution-engine",
   "version": "0.0.1",
-  "description": "",
+  "description": "Data Utility Resolution Engine",
   "main": "main.js",
   "scripts": {
+    "prestart": "npm install"
     "test": "./node_modules/.bin/jasmine-node spec",
     "start": "node app/main.js"
   },

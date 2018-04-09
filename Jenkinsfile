@@ -10,7 +10,8 @@ pipeline {
 			}
 			steps {
 				sh 'echo "Building! new"'
-				sh 'npm install --prefix src' 
+				//sh 'npm install --prefix src' 
+				sh 'cd src; npm install'
 			}
 		}
 		stage('Image creation') {
