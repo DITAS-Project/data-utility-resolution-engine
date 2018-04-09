@@ -8,7 +8,7 @@ var app = express();
 app.use(express.static(__dirname));
 var bodyParser = require('body-parser');
 var ranker = require("./ranker");
-var treePruner = require("./treepruner");
+var treePruner = require("./treePruner");
 
 var port = 8080;
 if(process.argv.length > 2) {
