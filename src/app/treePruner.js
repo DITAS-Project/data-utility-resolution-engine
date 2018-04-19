@@ -12,7 +12,7 @@ exports.pruneGoalTree = function pruneGoalTree(goalList, sourceNode, metrics, ge
 
     for (var child in sourceNode.children) {
         //recursively invoke function for each child node
-        ret = pruneGoalTree(goalList, node.children[child], metrics, generalMetrics);
+        ret = pruneGoalTree(goalList, sourceNode.children[child], metrics, generalMetrics);
         // if a child node is accepted, then add it to the pruned tree
         if (ret !== undefined) {
             targetNode.children.push(ret);

@@ -2,7 +2,7 @@
   "name": "data-utility-resolution-engine",
   "version": "0.0.1",
   "description": "Data Utility Resolution Engine",
-  "main": "main.js",
+  "main": "app/main.js",
   "scripts": {
     "prestart": "npm install",
     "test": "./node_modules/.bin/jasmine-node spec",
@@ -13,7 +13,10 @@
   "private": true,
   "dependencies": {
     "body-parser": "^1.18.2",
-    "express": "^4.16.3",
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "unirest": "^0.5.1",
     "jasmine-node": "^1.14.5"
   }
 }

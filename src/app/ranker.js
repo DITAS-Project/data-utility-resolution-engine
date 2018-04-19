@@ -9,10 +9,32 @@ exports.computeGlobalScore = function computeGlobalScore(dataUtilityScore, secur
     }
 }
 
-exports.computeNodeScore = function computeNodeScore(goalList, node, metrics, generalMetrics) {
-    console.log("checkNode, node:");
-    console.log(node);
-    var scoreboard = [];
+exports.computeScore = function computeScore(goalList, node, metrics, generalMetrics) {
+    var score = computeNodeScore(goalList, node, metrics, generalMetrics);
+    var maxScore = getNodeWeight(goalList, node);
+    return score / maxScore;
+}
+
+function getNodeWeight(goalList, node) {
+    var weight = 0;
+    for (var child in node.children) {
+        //recursively invoke function for each child node
+        weight = weight + getNodeWeight(goalList, node.children[child]);
+    }
+    for (var leaf in node.leaves) {
+        //look for a goal whose name is identical to goalName
+        for (var goal in goalList) {
+            if (goalList[goal].id === node.leaves[leaf]) {
+                weight = weight + goalList[goal].weight;
+            }
+        }
+    }
+    //return result to parent node
+    return weight;
+}
+
+function computeNodeScore(goalList, node, metrics, generalMetrics) {
+    var score = 0;
     var ret = 0;
     for (var child in node.children) {
         //recursively invoke function for each child node
@@ -21,7 +43,7 @@ exports.computeNodeScore = function computeNodeScore(goalList, node, metrics, ge
         if (ret === 0 && node.type === 'AND') {
             return 0;
         } else {
-            scoreboard.push(ret);
+            score = score + ret;
         }
     }
     for (var leaf in node.leaves) {
@@ -31,11 +53,9 @@ exports.computeNodeScore = function computeNodeScore(goalList, node, metrics, ge
         if (ret === 0 && node.type === 'AND') {
             return 0;
         } else {
-            scoreboard.push(ret);
+            score = score + ret;
         }
     }
     //return result to parent node
-    return scoreboard.reduce(function (a, b) {
-        return a + b;
-    }, 0) / scoreboard.length;
+    return score;
 }

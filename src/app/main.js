@@ -18,7 +18,7 @@ if(process.argv.length > 2) {
 		port = inputPort;
 	}
 	else {
-		console.log("Invalid port value, default 8081 used instead.");
+		console.log("Invalid port value, default 8080 used instead.");
 	}
 }
 
@@ -27,38 +27,42 @@ var server = app.listen(port, function () {
 })
 
 //required to parse JSON requests
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(bodyParser.json({ type: 'application/json' }));
 
 //REST service
 //input: application requirements, list of couples blueprint, method
-//output: list of tuples score, method, blueprint UUID
+//output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/rankBlueprints', function (req, res) {
-
-    var requirements = req.body.requirements;
-    var list = req.body.list;
+    var requirements = req.body.applicationRequirements;
+    var list = req.body.candidates;
     var resultSet = [];
+    //console.log(req);
     //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
-        var methodName = list[listitem].method;
+        var methodName = list[listitem].methodName;
         var methods = blueprint.DATA_MANAGEMENT.methods;
         var generalMetrics = blueprint.DATA_MANAGEMENT.generalMetrics;
         for (var method in methods) {
             if (methods[method].name === methodName) {
                 //compute data utility score
-                var dataUtilityScore = ranker.computeNodeScore(requirements.goalTrees.dataUtility.goals,
+                var dataUtilityScore = ranker.computeScore(requirements.goalTrees.dataUtility.goals,
                     requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility);
                 //compute security score
-                var securityScore = ranker.computeNodeScore(requirements.goalTrees.security.goals,
+                var securityScore = ranker.computeScore(requirements.goalTrees.security.goals,
                     requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security);
                 //compute privacy score
-                var privacyScore = ranker.computeNodeScore(requirements.goalTrees.privacy.goals,
+                var privacyScore = ranker.computeScore(requirements.goalTrees.privacy.goals,
                     requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy);
                 //compute global score
+                console.log("score ok");
+                console.log(dataUtilityScore);
+                console.log(securityScore);
+                console.log(privacyScore);
+
                 var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
                 if (globalScore > 0) {
+                    console.log("score great");
                     //prune requirements goal tree
                     var prunedRequirements = JSON.parse(JSON.stringify(requirements));
                     prunedRequirements.goalTrees.dataUtility.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.dataUtility.goals,
@@ -70,8 +74,8 @@ app.post('/api/rankBlueprints', function (req, res) {
 
                     //return blueprint with rank and pruned goal trees
                     var item = {
-                        blueprint: blueprint.UUID,
-                        method: methodName,
+                        blueprintUUID: blueprint.UUID,
+                        methodName: methodName,
                         score: globalScore,
                         fulfilledRequirements: prunedRequirements
                     };
@@ -80,7 +84,7 @@ app.post('/api/rankBlueprints', function (req, res) {
             }
         }
     }
-    res.end(resultSet.toString());
+    return res.json(resultSet);
 })
 
 

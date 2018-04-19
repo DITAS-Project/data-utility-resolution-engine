@@ -314,7 +314,7 @@ describe('evaluator module unit test -> ', function () {
                 },
                 {
                     "id": "3",
-                    "name": "volume 10000",
+                    "name": "volume 5000",
                     "type": "volume",
                     "properties": [
                         {
@@ -338,7 +338,7 @@ describe('evaluator module unit test -> ', function () {
                 },
                 {
                     "id": "5",
-                    "name": "Process completeness 90",
+                    "name": "Process completeness 80",
                     "type": "Process completeness",
                     "properties": [
                         {
@@ -554,7 +554,7 @@ describe('evaluator module unit test -> ', function () {
                 },
                 {
                     "id": "3",
-                    "name": "volume 10000",
+                    "name": "volume 5000",
                     "type": "volume",
                     "properties": [
                         {
@@ -578,7 +578,7 @@ describe('evaluator module unit test -> ', function () {
                 },
                 {
                     "id": "5",
-                    "name": "Process completeness 90",
+                    "name": "Process completeness 80",
                     "type": "Process completeness",
                     "properties": [
                         {

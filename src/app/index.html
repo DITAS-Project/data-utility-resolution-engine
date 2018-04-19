@@ -10,215 +10,540 @@
 <body>
   <B>Filter blueprint</B>
   <br/>
-  List of blueprints:
+  List of pairs blueprint - method:
   <br/>
-  <textarea name="blueprints" cols=80 rows=10 form="filterBlueprintForm">test</textarea>
+  <textarea name="candidates" cols=80 rows=10 form="filterBlueprintForm">
+      [
+      {
+      blueprint: 
+      {
+      "DATA_MANAGEMENT":{
+      "functionalProperties":
+      {
+      "tbd":"tbd"
+      },
+      "methods":
+      [
+      {
+      "name":"GetAllBloodTests",
+      "metrics":
+      {
+      "dataUtility":
+      [
+      {
+      "id": "1",
+      "name":"Availability 95-99",
+      "type":"Availability",
+      "properties": [
+      {
+      "name":"Availability",
+      "unit": "percentage",
+      "minimum":95,
+      "maximum":99
+      }
+      ]
+      },
+      {
+      "id": "2",
+      "name": "ResponseTime 1",
+      "type": "ResponseTime",
+      "properties": [
+      {
+      "name": "ResponseTime",
+      "maximum":1,
+      "unit": "second"
+      }
+      ]
+      },
+      {
+      "id": "3",
+      "name": "volume 10000",
+      "type": "volume",
+      "properties": [
+      {
+      "name": "volume",
+      "value":"10000",
+      "unit": "tuple"
+      }
+      ]
+      },
+      {
+      "id": "4",
+      "name": "Timeliness 0.6",
+      "type": "Timeliness",
+      "properties": [
+      {
+      "name": "Timeliness",
+      "maximum":0.6,
+      "unit": "NONE"
+      }
+      ]
+      },
+      {
+      "id": "5",
+      "name": "Process completeness 90",
+      "type": "Process completeness",
+      "properties": [
+      {
+      "name": "Process completeness",
+      "minimum":90,
+      "unit": "percentage"
+      }
+      ]
+      }
+      ],
+      "security":
+      [
+      {
+      "id": "1",
+      "name": "Encryption AES 128",
+      "type": "Encryption",
+      "properties":[
+      {
+      "name":"Algorithm",
+      "unit":"enum",
+      "value":"AES"
+      },
+      {
+      "name":"Keylength",
+      "unit":"number",
+      "minimum":128
+      },
+      {
+      "name":"Protocol",
+      "unit":"enum",
+      "value":"HTTPS"
+      }
+      ]
+      },
+      {
+      "id": "2",
+      "name": "Tracing",
+      "type": "Tracing",
+      "properties":
+      [
+      {
+      "name":"Level",
+      "unit":"enum",
+      "value":"datasource"
+      },
+      {
+      "name":"SampleRate",
+      "unit":"percentage",
+      "minimum":99,
+      "maximum":100
+      }
+      ]
+      },
+      {
+      "id": "3",
+      "name": "ACL rolebased readOnly",
+      "type": "ACL",
+      "properties":
+      [
+      {
+      "name":"Kind",
+      "unit":"enum",
+      "value":"rolebased"
+      },
+      {
+      "name":"Role",
+      "unit":"enum",
+      "value":"readOnly"
+      }
+      ]
+      },
+      {
+      "id": "4",
+      "name": "ACL rolebased readNonPersonal",
+      "type": "ACL",
+      "properties":
+      [
+      {
+      "name":"Kind",
+      "unit":"enum",
+      "value":"rolebased"
+      },
+      {
+      "name":"Role",
+      "unit":"enum",
+      "value":"readNonPersonal"
+      }
+      ]
+      }
+      ],
+      "privacy":
+      [
+      {
+      "id": "1",
+      "name": "PurposeControl NonCommercial Government",
+      "type": "PurposeControl",
+      "properties":
+      [
+      {
+      "name":"AllowedPurpose",
+      "unit":"enum",
+      "value":"NonCommercial"
+      },
+      {
+      "name":"AllowedGuarantor",
+      "unit":"enum",
+      "value":"Government"
+      }
+      ]
+      }
+      ]
+      }
+      }
+      ],
+      "generalMetrics":
+      {
+      "dataUtility":
+      [
+      ],
+      "security":
+      [
+      ],
+      "privacy":
+      [
+      ]
+      }
+
+      }
+      
+
+      }, 
+      methodName: "GetAllBloodTests"
+      }
+      ]
+  </textarea>
   <br/>
   Application developer requirements:
   <br/>
-  <textarea name="requirements" cols=80 rows=10 form="filterBlueprintForm">
+  <textarea name="applicationRequirements" cols=80 rows=10 form="filterBlueprintForm">
 {
-    "dataUtilityAndSecurity":
-    {
-        "dataUtility":
-        {
-            "properties":
-            [
-                {
-                    "id": "1",
-                    "name": "Service available", 
-                    "weight":"1",
-                    "metrics": 
-                    [
-                        {
-                            "name":"Availability",
-                            "unit": "percentage",
-                            "lowerLimit":"95",
-                            "upperLimit":"99",
-                            "utilityFunction":"maximize",
-                            "additionalInfo":
-                            {
-                                "tbd":"TBD"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": "2",
-                    "name": "Fast data process",
-                    "weight":"1",
-                    "metrics":
-                    [
-                        {
-                            "name": "ResponceTime",
-                            "upperLimit":"1",
-                            "unit": "second",
-                            "utilityFunction":"minimize",
-                            "additionalInfo":
-                            {
-                                "tbd":"TBD"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": "3",
-                    "name": "Data volume",
-                    "weight":"1",
-                    "metrics":
-                    [
-                        {
-                            "name": "volume",
-                            "value":"10000",
-                            "unit": "tuple",
-                            "utilityFunction":"maximize",
-                            "additionalInfo":
-                            {
-                                "tbd":"TBD"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": "4",
-                    "name": "Temporal validity",
-                    "weight":"1",
-                    "metrics":
-                    [
-                        {
-                            "name": "Timeliness",
-                            "upperLimit":"0.6",
-                            "unit": "NONE",
-                            "utilityFunction":"maximize",
-                            "additionalInfo":
-                            {
-                                "tbd":"TBD"
-                            }
-                        }
-                    ]                
-                },
-                {
-                    "id": "5",
-                    "name": "Amount of Data",
-                    "weight":"1",
-                    "metrics":
-                    [
-                        {
-                            "name": "Process completeness",
-                            "lowerLimit":"90",
-                            "unit": "percentage",
-                            "utilityFunction":"maximize",
-                            "additionalInfo":
-                            {
-                                "tbd":"TBD"
-                            }
-                        }
-                    ]                
-                }
-            ],
-            "goalTree":
-            {
-                "type":"AND",
-                "children":
-                [
-                    {
-                        "type":"OR",
-                        "children":["1","4"]
-                    },
-                    {
-                        "type":"AND",
-                        "children":
-                        [
-                            "2",
-                            {
-                                "type":"OR",
-                                "children":
-                                [
-                                    "3",
-                                    "5"
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }      
-        },
-        "security":
-       {
-           "properties":
-           [   
-               {
-                   "id": "1",
-                   "name": "encryption",
-                   "properties":[
-                       {
-                           "name":"Algorithm",
-                           "unit":"enum",
-                           "value":"AES"
-                       },
-                       {
-                           "name":"Keylength",
-                           "unit":"number",
-                           "lowerLimit":"128"
-                       }  
-                   ]
-               },
-               {
-                   "id": "2",
-                   "name": "tracing",
-                   "properties":
-                   [
-                       {
-                           "name":"level",
-                           "unit":"enum",
-                           "value":"datasource"
-                       },
-                       {
-                           "name":"samplerate",
-                           "unit":"percentage",
-                           "lowerLimit":"99",
-                           "upperLimit":"100"
-                       }  
-                   ]
-               },
-               {
-                   "id": "3",
-                   "name": "acl",
-                   "properties":
-                   [
-                       {
-                           "name":"kind",
-                           "unit":"enum",
-                           "value":"rolebased"
-                       },
-                       {
-                           "name":"role",
-                           "unit":"enum",
-                           "value":"readOnly"
-                       },
-                       {
-                           "name":"role",
-                           "unit":"enum",
-                           "value":"readNonPersonal"
-                       } 
-                   ]
-               }
-           ],
-           "identification":
-           {
-               "app":"SIGNATUREHASH",
-               "purposes":{"tbd":"representation of available purposes"},
-               "Guarantors":{"tbd":"trusted authorities (eg. government, institute etc.)"}
-           }
-       }
+      
+      "functionalRequirements":
+      {
+      "keywords": ["Restaurant in Milan","Milan","Restaurant"],
+      "schema":
+      {
+      "attributes": ["city","date","state"]
+      }
 
-    }
+      },
+      "goalTrees":
+      {
+      "dataUtility":
+      {
+      "goals":
+      [
+      {
+      "id": "1",
+      "name": "Service available",
+      "weight":"1",
+      "metrics":
+      [
+      {
+      "id": "1",
+      "name":"Availability 95-99",
+      "type":"Availability",
+      "properties": [
+      {
+      "name":"Availability",
+      "unit": "percentage",
+      "minimum":95,
+      "maximum":99
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "2",
+      "name": "Fast data process",
+      "weight":"1",
+      "metrics":
+      [
+      {
+      "id": "2",
+      "name": "ResponseTime 1",
+      "type": "ResponseTime",
+      "properties": [
+      {
+      "name": "ResponseTime",
+      "maximum":1,
+      "unit": "second"
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "3",
+      "name": "Data volume",
+      "weight":"1",
+      "metrics":
+      [
+      {
+      "id": "3",
+      "name": "volume 10000",
+      "type": "volume",
+      "properties": [
+      {
+      "name": "volume",
+      "value":"10000",
+      "unit": "tuple"
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "4",
+      "name": "Temporal validity",
+      "weight":"1",
+      "metrics":
+      [
+      {
+      "id": "4",
+      "name": "Timeliness 0.6",
+      "type": "Timeliness",
+      "properties": [
+      {
+      "name": "Timeliness",
+      "maximum":0.6,
+      "unit": "NONE"
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "5",
+      "name": "Amount of Data",
+      "weight":"1",
+      "metrics":
+      [
+      {
+      "id": "5",
+      "name": "Process completeness 90",
+      "type": "Process completeness",
+      "properties": [
+      {
+      "name": "Process completeness",
+      "minimum":90,
+      "unit": "percentage"
+      }
+      ]
+      }
+      ]
+      }
+      ],
+      "treeStructure":
+      {
+      "type":"AND",
+      "children":
+      [
+      {
+      "type":"OR",
+      "leaves":["1","4"]
+      },
+      {
+      "type":"AND",
+      "children":
+      [
+      {
+      "type":"OR",
+      "leaves":
+      [
+      "3",
+      "5"
+      ]
+      }
+      ],
+      "leaves":
+      [
+      "2"
+      ]
+      }
+      ]
+      }
+      },
+      "security":
+      {
+      "goals":
+      [
+      {
+      "id": "1",
+      "name": "Encryption",
+      "metrics":[
+      {
+      "id": "1",
+      "name": "Encryption AES 128",
+      "type": "Encryption",
+      "properties":[
+      {
+      "name":"Algorithm",
+      "unit":"enum",
+      "value":"AES"
+      },
+      {
+      "name":"Keylength",
+      "unit":"number",
+      "minimum":128
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "2",
+      "name": "Tracing",
+      "metrics":
+      [
+      {
+      "id": "2",
+      "name": "Tracing",
+      "type": "Tracing",
+      "properties":
+      [
+      {
+      "name":"Level",
+      "unit":"enum",
+      "value":"datasource"
+      },
+      {
+      "name":"SampleRate",
+      "unit":"percentage",
+      "minimum":99,
+      "maximum":100
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "3",
+      "name": "ACL rolebased readOnly",
+      "metrics":
+      [
+      {
+      "id": "3",
+      "name": "ACL rolebased readOnly",
+      "type": "ACL",
+      "properties":
+      [
+      {
+      "name":"Kind",
+      "unit":"enum",
+      "value":"rolebased"
+      },
+      {
+      "name":"Role",
+      "unit":"enum",
+      "value":"readOnly"
+      }
+      ]
+      }
+      ]
+      },
+      {
+      "id": "4",
+      "name": "ACL rolebased readNonPersonal",
+      "metrics":
+      [
+      {
+      "id": "4",
+      "name": "ACL rolebased readNonPersonal",
+      "type": "ACL",
+      "properties":
+      [
+      {
+      "name":"Kind",
+      "unit":"enum",
+      "value":"rolebased"
+      },
+      {
+      "name":"Role",
+      "unit":"enum",
+      "value":"readNonPersonal"
+      }
+      ]
+      }
+      ]
+      }
+      ],
+      "treeStructure":
+      {
+      "type":"AND",
+      "children":
+      [
+      {
+      "type":"OR",
+      "leaves":
+      [
+      "1",
+      "2"
+      ]
+      }
+      ],
+      "leaves":[
+      "3",
+      "4"
+      ]
+      }
+      },
+      "privacy":
+      {
+      "goals":
+      [
+      {
+      "id": "1",
+      "name": "PurposeControl",
+      "metrics":[
+      {
+      "id": "1",
+      "name": "PurposeControl NonCommercial Government",
+      "type": "PurposeControl",
+      "properties":
+      [
+      {
+      "name":"AllowedPurpose",
+      "unit":"enum",
+      "value":"NonCommercial"
+      },
+      {
+      "name":"AllowedGuarantor",
+      "unit":"enum",
+      "value":"Government"
+      }
+      ]
+      }
+      ]
+      }
+      ],
+      "treeStructure":
+      {
+      "type":"OR",
+      "leaves":
+      [
+      "1"
+      ]
+      }
+      }
+
+      }
+      
+
+
+
 }
 
 
 
   </textarea>
-  <form action="api/filterBlueprints" method="post" id="filterBlueprintForm">
+  <form action="api/rankBlueprints" method="post" id="filterBlueprintForm">
     <input type="submit" value="Submit">
   </form>
 </body>
