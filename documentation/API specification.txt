@@ -22,14 +22,12 @@ paths:
               $ref: "#/components/schemas/input"
               
       responses:
-        405:
-          description: "Invalid input"
+        200:
+          description: "Filtered Blueprints"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        200:
-          description: "Valid input"
+                $ref: '#/components/schemas/output'
 
           
 components:
@@ -41,43 +39,41 @@ components:
         tag:
           type: string   
 
-
-    violation:
+    Blueprint:
       properties:
-        type:
-          type: "string"
-          description: "the agreement id"
-        agreementid: 
-          type: "integer"
-        guaranteename: 
-          type: "string"
-          description: "the slo name"
-        date: 
-          type: "string"
-          description: "date when the violation was detected"
-        metric:        
-          type: "string"
-          description: "the metric name"
-        value:  
-          type: "number"
-          description: "violation value"
-          
+        name:
+          type: string
+        tag:
+          type: string   
+
+    candidates:
+      properties:
+        Blueprint:
+          $ref: "#/components/schemas/Blueprint"
+        MethodName:
+          type: string
+            
     input:
       properties:
-        violations:
+        candidates:
           type: "array"
           items: 
-            $ref: "#components/schemas/violation"
+            $ref: "#/components/schemas/candidates"
         applicationRequirements:
-          $ref: "#components/schemas/applicationRequirements"
+          $ref: "#/components/schemas/applicationRequirements"
           
-    Error:
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
+    output:
+      type: "array"
+      items: 
+        properties:
+          BlueprintUUID:
+            type: string
+          MethodName:
+            type: string
+          Score:
+            type: number
+            format: double
+            minimum: 0
+            maximum: 1
+          FulfilledRequirements:
+            $ref: "#/components/schemas/applicationRequirements"
