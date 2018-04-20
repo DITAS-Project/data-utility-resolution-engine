@@ -25,7 +25,11 @@ function getNodeWeight(goalList, node) {
         //look for a goal whose name is identical to goalName
         for (var goal in goalList) {
             if (goalList[goal].id === node.leaves[leaf]) {
-                weight = weight + goalList[goal].weight;
+                if (goalList[goal].weight !== undefined) {
+                    weight = weight + goalList[goal].weight;
+                } else {
+                    weight = weight + 1;
+                }
             }
         }
     }

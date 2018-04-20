@@ -29,7 +29,11 @@ exports.assessGoal = function assessGoal(goalList, goalName, metrics, generalMet
             }
             //if we reached the end of the cycle, then the goal is fulfilled
             //thus, return the weight
-            return goalList[goal].weight;
+            if (goalList[goal].weight !== undefined) {
+                return goalList[goal].weight;
+            } else {
+                return 1;
+            }
         }
     }
     //application requirements are malformed
