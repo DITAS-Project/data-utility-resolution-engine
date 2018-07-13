@@ -50,16 +50,16 @@ app.post('/api/filterBlueprints', function (req, res) {
             for (var method in methods) {
                 console.log(methods[method].method_id);
                 if (methods[method].method_id === methodNames[methodName]) {
-                    /*
+                    
                     //compute data utility score
                     var dataUtilityScore = ranker.computeScore(requirements.attributes.dataUtility,
-                        requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility);
+                        requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, "dataUtility");
                     //compute security score
                     var securityScore = ranker.computeScore(requirements.attributes.security,
-                        requirements.goalTrees.security, methods[method].attributes.security);
+                        requirements.goalTrees.security, methods[method].attributes.security, "security");
                     //compute privacy score
                     var privacyScore = ranker.computeScore(requirements.attributes.privacy,
-                        requirements.goalTrees.privacy, methods[method].attributes.privacy);
+                        requirements.goalTrees.privacy, methods[method].attributes.privacy, "privacy");
                     //compute global score
                     console.log("score ok");
                     console.log(dataUtilityScore);
@@ -67,11 +67,7 @@ app.post('/api/filterBlueprints', function (req, res) {
                     console.log(privacyScore);
 
                     var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
-                    */
-
-                    //for mockup, to be removed in final version
-                    var globalScore = 1;
-
+                    
                     if (globalScore > 0) {
                         console.log("score great");
                         //prune requirements goal tree
@@ -79,11 +75,11 @@ app.post('/api/filterBlueprints', function (req, res) {
                         trees.method_id = methodNames[methodName];
                         trees.goalTrees = {};
                         trees.goalTrees.dataUtility = treePruner.pruneGoalTree(requirements.attributes.dataUtility,
-                            requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility);
+                            requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, "dataUtility");
                         trees.goalTrees.security = treePruner.pruneGoalTree(requirements.attributes.security,
-                            requirements.goalTrees.security, methods[method].attributes.security);
+                            requirements.goalTrees.security, methods[method].attributes.security, "security");
                         trees.goalTrees.privacy = treePruner.pruneGoalTree(requirements.attributes.privacy,
-                            requirements.goalTrees.privacy, methods[method].attributes.privacy);
+                            requirements.goalTrees.privacy, methods[method].attributes.privacy, "privacy");
                         blueprint.ABSTRACT_PROPERTIES = [trees];
                         //return blueprint with rank and pruned goal trees
                         var item = {

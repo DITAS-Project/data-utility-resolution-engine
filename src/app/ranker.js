@@ -9,40 +9,35 @@ exports.computeGlobalScore = function computeGlobalScore(dataUtilityScore, secur
     }
 }
 
-exports.computeScore = function computeScore(requirements, node, attributes) {
-    var score = computeNodeScore(requirements, node, attributes);
-    var maxScore = getNodeWeight(requirements, node);
+exports.computeScore = function computeScore(requirements, node, attributes, category) {
+    var score = computeNodeScore(requirements, node, attributes, category);
+    var maxScore = getNodeWeight(node);
     return score / maxScore;
 }
 
-function getNodeWeight(goalList, node) {
+function getNodeWeight(node) {
     var weight = 0;
     for (var child in node.children) {
         //recursively invoke function for each child node
-        weight = weight + getNodeWeight(goalList, node.children[child]);
+        weight = weight + getNodeWeight(node.children[child]);
     }
     for (var leaf in node.leaves) {
-        //look for a goal whose name is identical to goalName
-        for (var goal in goalList) {
-            if (goalList[goal].id === node.leaves[leaf]) {
-                if (goalList[goal].weight !== undefined) {
-                    weight = weight + goalList[goal].weight;
-                } else {
-                    weight = weight + 1;
-                }
-            }
+        if (node.leaves[leaf].weight !== undefined) {
+            weight = weight + node.leaves[leaf].weight;
+        } else {
+            weight = weight + 1;
         }
     }
     //return result to parent node
     return weight;
 }
 
-function computeNodeScore(requirements, node, attributes) {
+function computeNodeScore(requirements, node, attributes, category) {
     var score = 0;
     var ret = 0;
     for (var child in node.children) {
         //recursively invoke function for each child node
-        ret = computeNodeScore(requirements, node.children[child], attributes);
+        ret = computeNodeScore(requirements, node.children[child], attributes, category);
         //when current node type is AND, the first child node that is not satisfied makes the current node also not satisfied
         if (ret === 0 && node.type === 'AND') {
             return 0;
@@ -52,7 +47,7 @@ function computeNodeScore(requirements, node, attributes) {
     }
     for (var leaf in node.leaves) {
         //recursively invoke function for each leaf goal
-        ret = evaluator.assessGoal(requirements, node.leaves[leaf], attributes);
+        ret = evaluator.assessGoal(requirements, node.leaves[leaf], attributes, category);
         //when current node type is AND, the first leaf goal that is not satisfied makes the current node also not satisfied
         if (ret === 0 && node.type === 'AND') {
             return 0;

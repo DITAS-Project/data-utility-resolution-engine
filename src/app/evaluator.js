@@ -1,6 +1,6 @@
 ﻿var exports = module.exports = {};
 
-exports.assessGoal = function assessGoal(requirements, goal, attributes) {
+exports.assessGoal = function assessGoal(requirements, goal, attributes, category) {
     //verify if all requirements belonging to that goal are fulfilled
     for (var goalReq in goal.attributes) {
         //look for a requirement whose name is identical to goalReq
@@ -13,12 +13,16 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes) {
                         compatibleAttrs.push(attributes[attribute]);
                     }
                 }
-                //if the attributes were not fulfilled (or not found), also the whole goal is not
-                if (!module.exports.assessMetric(requirements[requirement], compatibleAttrs)) {
-                    return 0;
+
+                if (category === "security" || category === "privacy") {
+                    //INVOCARE PSE TUB
+                } else {
+                    //if the attributes were not fulfilled (or not found), also the whole goal is not
+                    if (!module.exports.assessDUAttributes(requirements[requirement], compatibleAttrs)) {
+                        return 0;
+                    }
                 }
             }
-
         }
     }
     //if we reached the end of the cycle, then the goal is fulfilled
@@ -30,13 +34,13 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes) {
     }
 }
 
-exports.assessMetric = function assessAttributes(goalAttribute, blueprintAttributes) {
-    //solo per data quality, su security e privacy invocare ws TUB
+exports.assessDUAttributes = function assessDUAttributes(goalAttribute, blueprintAttributes) {
     for (var goalProperty in goalAttribute.properties) {
+        
         var fulfilled = false;
         for (var attribute in blueprintAttributes) {
             for (var blueprintProperty in blueprintAttributes[attribute].properties) {
-                if (goalAttribute.properties[goalProperty].name === blueprintAttributes[attribute].properties[blueprintProperty].name) {
+                if (goalProperty === blueprintProperty) {
                     if (module.exports.assessProperty(goalAttribute.properties[goalProperty], blueprintAttributes[attribute].properties[blueprintProperty])) {
                         fulfilled = true;
                     }
