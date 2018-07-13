@@ -1,7 +1,13 @@
 ﻿var exports = module.exports = {};
 var evaluator = require("./evaluator");
 
-exports.pruneGoalTree = function pruneGoalTree(goalList, sourceNode, metrics, generalMetrics) {
+exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attributes) {
+    var a = 0;
+    //for mockup, to be removed in final version
+    if (a===0) {
+        return sourceNode;
+    }
+
     console.log("checkNode, node:");
     console.log(sourceNode);
     var ret = 0;
@@ -12,7 +18,7 @@ exports.pruneGoalTree = function pruneGoalTree(goalList, sourceNode, metrics, ge
     
     for (var child in sourceNode.children) {
         //recursively invoke function for each child node
-        ret = pruneGoalTree(goalList, sourceNode.children[child], metrics, generalMetrics);
+        ret = pruneGoalTree(constraints, sourceNode.children[child], attributes);
         // if a child node is accepted, then add it to the pruned tree
         if (ret !== undefined) {
             children.push(ret);
@@ -25,7 +31,7 @@ exports.pruneGoalTree = function pruneGoalTree(goalList, sourceNode, metrics, ge
     }
     for (var leaf in sourceNode.leaves) {
         //recursively invoke function for each leaf goal
-        ret = evaluator.assessGoal(goalList, sourceNode.leaves[leaf], metrics, generalMetrics);
+        ret = evaluator.assessGoal(constraints, sourceNode.leaves[leaf], attributes);
         // if a leaf goal is accepted, then add it to the pruned tree
         if (ret !== 0) {
             leaves.push(sourceNode.leaves[leaf]);

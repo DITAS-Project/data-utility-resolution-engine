@@ -1,53 +1,43 @@
 ﻿var exports = module.exports = {};
 
-exports.assessGoal = function assessGoal(goalList, goalName, metrics, generalMetrics) {
-    //look for a goal whose name is identical to goalName
-    for (var goal in goalList) {
-        if (goalList[goal].id === goalName) {
-            //verify if all metrics belonging to that goal are fulfilled
-            for (var goalMetric in goalList[goal].metrics) {
-                //look for blueprint metrics compatible with the one indicated in the goal
-                var compatibleMetrics = [];
-                for (var metric in metrics) {
-                    if (metrics[metric].type === goalList[goal].metrics[goalMetric].type) {
-                        compatibleMetrics.push(metrics[metric]);
+exports.assessGoal = function assessGoal(requirements, goal, attributes) {
+    //verify if all requirements belonging to that goal are fulfilled
+    for (var goalReq in goal.attributes) {
+        //look for a requirement whose name is identical to goalReq
+        for (var requirement in requirements) {
+            if (requirements[requirement].id === goal.attributes[goalReq]) {
+                //look for blueprint attributes compatible with the one indicated in the goal
+                var compatibleAttrs = [];
+                for (var attribute in attributes) {
+                    if (attributes[attribute].type === requirements[requirement].type) {
+                        compatibleAttrs.push(attributes[attribute]);
                     }
                 }
-                //a compatible metric was not found
-                if (compatibleMetrics.length === 0) {
-                    //look into general metrics
-                    for (metric in generalMetrics) {
-                        if (generalMetrics[metric].type === goalList[goal].metrics[goalMetric].type) {
-                            compatibleMetrics.push(generalMetrics[metric]);
-                        }
-                    }
-                }
-                //if the metric was not fulfilled (or not found), also the whole goal is not
-                if (!module.exports.assessMetric(goalList[goal].metrics[goalMetric], compatibleMetrics)) {
+                //if the attributes were not fulfilled (or not found), also the whole goal is not
+                if (!module.exports.assessMetric(requirements[requirement], compatibleAttrs)) {
                     return 0;
                 }
             }
-            //if we reached the end of the cycle, then the goal is fulfilled
-            //thus, return the weight
-            if (goalList[goal].weight !== undefined) {
-                return goalList[goal].weight;
-            } else {
-                return 1;
-            }
+
         }
     }
-    //application requirements are malformed
-    return 0;
+    //if we reached the end of the cycle, then the goal is fulfilled
+    //thus, return the weight
+    if (goal.weight !== undefined) {
+        return goal.weight;
+    } else {
+        return 1;
+    }
 }
 
-exports.assessMetric = function assessMetric(goalMetric, blueprintMetrics) {
+exports.assessMetric = function assessAttributes(goalAttribute, blueprintAttributes) {
     //solo per data quality, su security e privacy invocare ws TUB
-    for (var goalProperty in goalMetric.properties) {
+    for (var goalProperty in goalAttribute.properties) {
         var fulfilled = false;
-        for (var metric in blueprintMetrics) {
-            for (var blueprintProperty in blueprintMetrics[metric].properties) {
-                if (goalMetric.properties[goalProperty].name === blueprintMetrics[metric].properties[blueprintProperty].name) {
-                    if (module.exports.assessProperty(goalMetric.properties[goalProperty], blueprintMetrics[metric].properties[blueprintProperty])) {
+        for (var attribute in blueprintAttributes) {
+            for (var blueprintProperty in blueprintAttributes[attribute].properties) {
+                if (goalAttribute.properties[goalProperty].name === blueprintAttributes[attribute].properties[blueprintProperty].name) {
+                    if (module.exports.assessProperty(goalAttribute.properties[goalProperty], blueprintAttributes[attribute].properties[blueprintProperty])) {
                         fulfilled = true;
                     }
                 }

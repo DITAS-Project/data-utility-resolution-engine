@@ -27,59 +27,72 @@ var server = app.listen(port, function () {
 })
 
 //required to parse JSON requests
-app.use(bodyParser.json({ type: 'application/json' }));
+//app.use(bodyParser.json({ type: 'application/json' }));
+app.use(express.json());
+app.use(express.urlencoded());
 
 //REST service
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
-app.post('/api/rankBlueprints', function (req, res) {
-    var requirements = req.body.applicationRequirements;
-    var list = req.body.candidates;
+app.post('/api/filterBlueprints', function (req, res) {
+    var requirements = JSON.parse(req.body.applicationRequirements);
+    var list = JSON.parse(req.body.candidates);
     var resultSet = [];
     //console.log(req);
     //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
-        var methodName = list[listitem].methodName;
-        var methods = blueprint.DATA_MANAGEMENT.methods;
-        var generalMetrics = blueprint.DATA_MANAGEMENT.generalMetrics;
-        for (var method in methods) {
-            if (methods[method].name === methodName) {
-                //compute data utility score
-                var dataUtilityScore = ranker.computeScore(requirements.goalTrees.dataUtility.goals,
-                    requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility);
-                //compute security score
-                var securityScore = ranker.computeScore(requirements.goalTrees.security.goals,
-                    requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security);
-                //compute privacy score
-                var privacyScore = ranker.computeScore(requirements.goalTrees.privacy.goals,
-                    requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy);
-                //compute global score
-                console.log("score ok");
-                console.log(dataUtilityScore);
-                console.log(securityScore);
-                console.log(privacyScore);
+        var methodNames = list[listitem].methodNames;
+        console.log(methodNames);
+        var methods = blueprint.DATA_MANAGEMENT;
+        for (var methodName in methodNames) {
+            console.log(methodNames[methodName]);
+            for (var method in methods) {
+                console.log(methods[method].method_id);
+                if (methods[method].method_id === methodNames[methodName]) {
+                    /*
+                    //compute data utility score
+                    var dataUtilityScore = ranker.computeScore(requirements.attributes.dataUtility,
+                        requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility);
+                    //compute security score
+                    var securityScore = ranker.computeScore(requirements.attributes.security,
+                        requirements.goalTrees.security, methods[method].attributes.security);
+                    //compute privacy score
+                    var privacyScore = ranker.computeScore(requirements.attributes.privacy,
+                        requirements.goalTrees.privacy, methods[method].attributes.privacy);
+                    //compute global score
+                    console.log("score ok");
+                    console.log(dataUtilityScore);
+                    console.log(securityScore);
+                    console.log(privacyScore);
 
-                var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
-                if (globalScore > 0) {
-                    console.log("score great");
-                    //prune requirements goal tree
-                    var prunedRequirements = JSON.parse(JSON.stringify(requirements));
-                    prunedRequirements.goalTrees.dataUtility.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.dataUtility.goals,
-                        requirements.goalTrees.dataUtility.treeStructure, methods[method].metrics.dataUtility, generalMetrics.dataUtility);
-                    prunedRequirements.goalTrees.security.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.security.goals,
-                        requirements.goalTrees.security.treeStructure, methods[method].metrics.security, generalMetrics.security);
-                    prunedRequirements.goalTrees.privacy.treeStructure = treePruner.pruneGoalTree(requirements.goalTrees.privacy.goals,
-                        requirements.goalTrees.privacy.treeStructure, methods[method].metrics.privacy, generalMetrics.privacy);
+                    var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
+                    */
 
-                    //return blueprint with rank and pruned goal trees
-                    var item = {
-                        blueprintUUID: blueprint.UUID,
-                        methodName: methodName,
-                        score: globalScore,
-                        fulfilledRequirements: prunedRequirements
-                    };
-                    resultSet.push(item);
+                    //for mockup, to be removed in final version
+                    var globalScore = 1;
+
+                    if (globalScore > 0) {
+                        console.log("score great");
+                        //prune requirements goal tree
+                        var trees = {};
+                        trees.method_id = methodNames[methodName];
+                        trees.goalTrees = {};
+                        trees.goalTrees.dataUtility = treePruner.pruneGoalTree(requirements.attributes.dataUtility,
+                            requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility);
+                        trees.goalTrees.security = treePruner.pruneGoalTree(requirements.attributes.security,
+                            requirements.goalTrees.security, methods[method].attributes.security);
+                        trees.goalTrees.privacy = treePruner.pruneGoalTree(requirements.attributes.privacy,
+                            requirements.goalTrees.privacy, methods[method].attributes.privacy);
+                        blueprint.ABSTRACT_PROPERTIES = [trees];
+                        //return blueprint with rank and pruned goal trees
+                        var item = {
+                            blueprint: blueprint,
+                            score: globalScore,
+                            methodNames: [methodNames[methodName]]
+                        };
+                        resultSet.push(item);
+                    }
                 }
             }
         }

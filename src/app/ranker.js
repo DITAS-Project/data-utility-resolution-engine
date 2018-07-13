@@ -9,9 +9,9 @@ exports.computeGlobalScore = function computeGlobalScore(dataUtilityScore, secur
     }
 }
 
-exports.computeScore = function computeScore(goalList, node, metrics, generalMetrics) {
-    var score = computeNodeScore(goalList, node, metrics, generalMetrics);
-    var maxScore = getNodeWeight(goalList, node);
+exports.computeScore = function computeScore(requirements, node, attributes) {
+    var score = computeNodeScore(requirements, node, attributes);
+    var maxScore = getNodeWeight(requirements, node);
     return score / maxScore;
 }
 
@@ -37,12 +37,12 @@ function getNodeWeight(goalList, node) {
     return weight;
 }
 
-function computeNodeScore(goalList, node, metrics, generalMetrics) {
+function computeNodeScore(requirements, node, attributes) {
     var score = 0;
     var ret = 0;
     for (var child in node.children) {
         //recursively invoke function for each child node
-        ret = computeNodeScore(goalList, node.children[child], metrics, generalMetrics);
+        ret = computeNodeScore(requirements, node.children[child], attributes);
         //when current node type is AND, the first child node that is not satisfied makes the current node also not satisfied
         if (ret === 0 && node.type === 'AND') {
             return 0;
@@ -52,7 +52,7 @@ function computeNodeScore(goalList, node, metrics, generalMetrics) {
     }
     for (var leaf in node.leaves) {
         //recursively invoke function for each leaf goal
-        ret = evaluator.assessGoal(goalList, node.leaves[leaf], metrics, generalMetrics);
+        ret = evaluator.assessGoal(requirements, node.leaves[leaf], attributes);
         //when current node type is AND, the first leaf goal that is not satisfied makes the current node also not satisfied
         if (ret === 0 && node.type === 'AND') {
             return 0;

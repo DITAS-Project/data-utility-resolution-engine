@@ -38,14 +38,14 @@ definitions:
   applicationRequirements:
     description: "JSON document conforming to application requirements definitions as in https://github.com/DITAS-Project/ApplicationRequirement"      
 
-  Blueprint:
+  blueprint:
     description: "JSON document conforming to abstract blueprint definitions as in https://github.com/DITAS-Project/blueprint"   
 
   candidates:
     properties:
-      Blueprint:
-        $ref: "#/definitions/Blueprint"
-      MethodNames:
+      blueprint:
+        $ref: "#/definitions/blueprint"
+      methodNames:
         type: "array"
         items:
             type: "string"
@@ -65,14 +65,14 @@ definitions:
     type: "array"
     items: 
       properties:
-        Blueprint:
-          $ref: "#/definitions/Blueprint"
-        Score:
+        blueprint:
+          $ref: "#/definitions/blueprint"
+        score:
           type: number
           format: double
           minimum: 0
           maximum: 1
-        MethodNames:
+        methodNames:
           type: "array"
           items:
             type: "string"
