@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  description: "The goal of the component consists in filtering bluprints and raking them, based on the application developer requirements. Source code in [github](https://github.com/DITAS-Project/data-utility-resolution-engine)"
+  description: "The goal of the component consists in filtering blueprints and raking them, based on the application developer requirements. Source code in [github](https://github.com/DITAS-Project/data-utility-resolution-engine)"
   version: "0.0.1"
   title: "Data Utility Resolution Engine"
   license:
@@ -36,47 +36,44 @@ paths:
 
 definitions:
   applicationRequirements:
-    properties:
-      name:
-        type: string
-      tag:
-        type: string   
+    description: "JSON document conforming to application requirements definitions as in https://github.com/DITAS-Project/ApplicationRequirement"      
 
   Blueprint:
-    properties:
-      name:
-        type: string
-      tag:
-        type: string   
+    description: "JSON document conforming to abstract blueprint definitions as in https://github.com/DITAS-Project/blueprint"   
 
   candidates:
     properties:
       Blueprint:
         $ref: "#/definitions/Blueprint"
-      MethodName:
-        type: string
+      MethodNames:
+        type: "array"
+        items:
+            type: "string"
+           
           
   input:
     properties:
+      applicationRequirements:
+        $ref: "#/definitions/applicationRequirements"
       candidates:
         type: "array"
         items: 
           $ref: "#/definitions/candidates"
-      applicationRequirements:
-        $ref: "#/definitions/applicationRequirements"
+      
         
   output:
     type: "array"
     items: 
       properties:
-        BlueprintUUID:
-          type: string
-        MethodName:
-          type: string
+        Blueprint:
+          $ref: "#/definitions/Blueprint"
         Score:
           type: number
           format: double
           minimum: 0
           maximum: 1
-        FulfilledRequirements:
-          $ref: "#/definitions/applicationRequirements"
+        MethodNames:
+          type: "array"
+          items:
+            type: "string"
+        
