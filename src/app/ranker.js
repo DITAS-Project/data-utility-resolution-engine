@@ -10,9 +10,13 @@ exports.computeGlobalScore = function computeGlobalScore(dataUtilityScore, secur
 }
 
 exports.computeScore = function computeScore(requirements, node, attributes, category) {
-    var score = computeNodeScore(requirements, node, attributes, category);
-    var maxScore = getNodeWeight(node);
-    return score / maxScore;
+    if (node !== undefined) {
+        var score = computeNodeScore(requirements, node, attributes, category);
+        var maxScore = getNodeWeight(node);
+        return score / maxScore;
+    } else {
+        return 1;
+    }
 }
 
 function getNodeWeight(node) {

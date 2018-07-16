@@ -6,8 +6,10 @@ exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attribut
     var targetNode = {};
     var leaves = [];
     var children = [];
+    if (sourceNode === undefined) {
+        return targetNode;
+    }
     targetNode.type = sourceNode.type;
-    
     for (var child in sourceNode.children) {
         //recursively invoke function for each child node
         ret = pruneGoalTree(constraints, sourceNode.children[child], attributes, category);
