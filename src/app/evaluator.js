@@ -2,12 +2,16 @@
 
 exports.compareDUAttributes = function compareDUAttributes(requirement, attribute, optimum) {
     //attribute fulfills requirement
-    if (module.exports.assessDUAttributes(requirement, attribute, attribute)) {
+    if (module.exports.assessDUAttributes(requirement, attribute, attribute) > 0) {
         //no optimum attribute defined, thus current one is optimum
         if (optimum === undefined) {
-            return requirement;
-        } else {
+            optimum = {};
+            optimum.properties = {};
             for (var requirementProperty in requirement.properties) {
+                optimum.properties[requirementProperty] = compareProperty(requirement.properties[requirementProperty], undefined, attribute.properties[requirementProperty]);
+            }
+        } else {
+            for (requirementProperty in requirement.properties) {
                 optimum.properties[requirementProperty] = compareProperty(requirement.properties[requirementProperty], optimum.properties[requirementProperty], attribute.properties[requirementProperty]);
             }
         }
@@ -18,45 +22,38 @@ exports.compareDUAttributes = function compareDUAttributes(requirement, attribut
 function compareProperty(requirementProperty, optimumProperty, attributeProperty) {
     //minimum threshold defined for requirements
     if (requirementProperty.minimum !== undefined) {
+        //no maximum threshold, so it is not a range
         if (requirementProperty.maximum === undefined) {
             //determine if attribute is greater than current optimum
-            if (optimumProperty.minimum !== undefined && attributeProperty.minimum !== undefined) {
-                if (optimumProperty.minimum < attributeProperty.minimum) {
-                    return attributeProperty;
+            if (optimumProperty !== undefined && attributeProperty.minimum !== undefined) {
+                if (optimumProperty < attributeProperty.minimum) {
+                    return attributeProperty.minimum;
                 }
-            } else if (optimumProperty.value !== undefined && attributeProperty.value !== undefined) {
-                if (optimumProperty.value < attributeProperty.value) {
-                    return attributeProperty;
+            } else if (optimumProperty !== undefined && attributeProperty.value !== undefined) {
+                if (optimumProperty < attributeProperty.value) {
+                    return attributeProperty.value;
                 }
-            } else if (optimumProperty.minimum !== undefined && attributeProperty.value !== undefined) {
-                if (optimumProperty.minimum < attributeProperty.value) {
-                    return attributeProperty;
-                }
-            } else if (optimumProperty.value !== undefined && attributeProperty.minimum !== undefined) {
-                if (optimumProperty.value < attributeProperty.minimum) {
-                    return attributeProperty;
-                }
+            } else if (optimumProperty === undefined && attributeProperty.minimum !== undefined) {
+                return attributeProperty.minimum;
+            } else if (optimumProperty === undefined && attributeProperty.value !== undefined) {
+                return attributeProperty.value;
             }
         }
         //maximum threshold defined for requirements
     } else if (requirementProperty.maximum !== undefined) {
         //determine if attribute is lower than current optimum
-        if (optimumProperty.maximum !== undefined && attributeProperty.maximum !== undefined) {
-            if (optimumProperty.maximum > attributeProperty.maximum) {
-                return attributeProperty;
+        if (optimumProperty !== undefined && attributeProperty.maximum !== undefined) {
+            if (optimumProperty > attributeProperty.maximum) {
+                return attributeProperty.maximum;
             }
-        } else if (optimumProperty.value !== undefined && attributeProperty.value !== undefined) {
-            if (optimumProperty.value > attributeProperty.value) {
-                return attributeProperty;
+        } else if (optimumProperty !== undefined && attributeProperty.value !== undefined) {
+            if (optimumProperty > attributeProperty.value) {
+                return attributeProperty.value;
             }
-        } else if (optimumProperty.maximum !== undefined && attributeProperty.value !== undefined) {
-            if (optimumProperty.maximum > attributeProperty.value) {
-                return attributeProperty;
-            }
-        } else if (optimumProperty.value !== undefined && attributeProperty.maximum !== undefined) {
-            if (optimumProperty.value > attributeProperty.maximum) {
-                return attributeProperty;
-            }
+        } else if (optimumProperty === undefined && attributeProperty.maximum !== undefined) {
+            return attributeProperty.maximum;
+        } else if (optimumProperty === undefined && attributeProperty.value !== undefined) {
+            return attributeProperty.value;
         }
     }
     //current optimum is still the best case
@@ -127,22 +124,21 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
     return score;
 }
 
-exports.assessProperty = function assessProperty(goalProperty, blueprintProperty, optimumProperty) {
+exports.assessProperty = function assessProperty(requirementProperty, blueprintProperty, optimumProperty) {
     //minimum threshold was specified for goal property
-    if (goalProperty.minimum !== undefined) {
+    if (requirementProperty.minimum !== undefined) {
         //minimum threshold was specified for blueprint property
         if (blueprintProperty.minimum !== undefined) {
             //verify if property is not within threshold
-            if (goalProperty.minimum > blueprintProperty.minimum) {
+            if (requirementProperty.minimum > blueprintProperty.minimum) {
                 //goal metric is not fulfilled
                 return 0;
-            }
-            
+            } 
         } else {
             //a fixed value is defined for the blueprint
             if (blueprintProperty.value !== undefined) {
                 //verify if property is not within threshold
-                if (goalProperty.minimum > blueprintProperty.value) {
+                if (requirementProperty.minimum > blueprintProperty.value) {
                     //goal metric is not fulfilled
                     return 0;
                 }
@@ -153,11 +149,11 @@ exports.assessProperty = function assessProperty(goalProperty, blueprintProperty
         }
     }
     //maximum threshold was specified for goal property
-    if (goalProperty.maximum !== undefined) {
+    if (requirementProperty.maximum !== undefined) {
         //maximum threshold was specified for blueprint property
         if (blueprintProperty.maximum !== undefined) {
             //verify if property is not within threshold
-            if (goalProperty.maximum < blueprintProperty.maximum) {
+            if (requirementProperty.maximum < blueprintProperty.maximum) {
                 //goal property is not fulfilled
                 return 0
             }
@@ -166,7 +162,7 @@ exports.assessProperty = function assessProperty(goalProperty, blueprintProperty
             //a fixed value is defined for the blueprint
             if (blueprintProperty.value !== undefined) {
                 //verify if property is not within threshold
-                if (goalProperty.maximum < blueprintProperty.value) {
+                if (requirementProperty.maximum < blueprintProperty.value) {
                     //goal metric is not fulfilled
                     return 0;
                 }
@@ -177,11 +173,11 @@ exports.assessProperty = function assessProperty(goalProperty, blueprintProperty
         }
     }
     //a specific value was specified for goal property
-    if (goalProperty.value !== undefined) {
+    if (requirementProperty.value !== undefined) {
         //a specific value was specified for blueprint property
         if (blueprintProperty.value !== undefined) {
             //verify if both values are the same
-            if (goalProperty.value !== blueprintProperty.value) {
+            if (requirementProperty.value !== blueprintProperty.value) {
                 //goal property is not fulfilled
                 return 0
             }
@@ -191,7 +187,32 @@ exports.assessProperty = function assessProperty(goalProperty, blueprintProperty
             return 0
         }
     }
-    //all checks were passed, property was fulfilled
+    //all checks were passed, property was fulfilled, now determine score
+    //lower bound
+    if (optimumProperty !== undefined) {
+        if (requirementProperty.minimum !== undefined) {
+            //no upper bound
+            if (requirementProperty.maximum === undefined && (optimumProperty - requirementProperty.minimum > 0) ) {
+                //compute score: the closer the property is to the optimum, the best the result is
+                if (blueprintProperty.minimum !== undefined) {
+                    return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum))
+                } else if (blueprintProperty.value !== undefined) {
+                    return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum))
+                }
+            }
+            //upper bound
+        } else if (requirementProperty.maximum !== undefined) {
+            if ((requirementProperty.maximum - optimumProperty) > 0) {
+                //compute score: the closer the property is to the optimum, the best the result is
+                if (blueprintProperty.maximum !== undefined) {
+                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.maximum) / (requirementProperty.maximum - optimumProperty))
+                } else if (blueprintProperty.value !== undefined) {
+                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.value) / (requirementProperty.maximum - optimumProperty))
+                }
+            }
+        }
+    }
+    //no comparison is possible, binary decision
     return 1;
 }
 

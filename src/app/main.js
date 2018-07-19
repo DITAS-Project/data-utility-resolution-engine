@@ -26,8 +26,8 @@ var server = app.listen(port, function () {
 	console.log("Resolution Engine listening on port "+port);
 })
 
-app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 //REST service
 //input: application requirements, list of couples blueprint, method
@@ -54,7 +54,7 @@ app.post('/api/filterBlueprints', function (req, res) {
             for (var method in methods) {
                 console.log(methods[method].method_id);
                 if (methods[method].method_id === methodNames[methodName]) {
-                    
+                    console.log(optimumDUValues);
                     //compute data utility score
                     var dataUtilityScore = ranker.computeScore(requirements.attributes.dataUtility,
                         requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, optimumDUValues);
