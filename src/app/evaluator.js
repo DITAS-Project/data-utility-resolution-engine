@@ -111,7 +111,7 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
     var score = 1;
     for (var requirementProperty in goalRequirement.properties) {
         // a property exists
-        if (blueprintAttribute.properties[requirementProperty] !== undefined) {
+        if (blueprintAttribute.properties[requirementProperty] !== undefined && optimumAttribute !== undefined) {
             //compute score
             console.log(requirementProperty);
             score = score * module.exports.assessProperty(goalRequirement.properties[requirementProperty], blueprintAttribute.properties[requirementProperty], optimumAttribute.properties[requirementProperty])
