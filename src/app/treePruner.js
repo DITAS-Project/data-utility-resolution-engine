@@ -1,7 +1,7 @@
 ﻿var exports = module.exports = {};
 var evaluator = require("./evaluator");
 
-exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attributes, category) {
+exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attributes, optimum) {
     var ret = 0;
     var targetNode = {};
     var leaves = [];
@@ -12,7 +12,7 @@ exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attribut
     targetNode.type = sourceNode.type;
     for (var child in sourceNode.children) {
         //recursively invoke function for each child node
-        ret = pruneGoalTree(constraints, sourceNode.children[child], attributes, category);
+        ret = pruneGoalTree(constraints, sourceNode.children[child], attributes, optimum);
         // if a child node is accepted, then add it to the pruned tree
         if (ret !== undefined) {
             if (ret.leaves === undefined) {
@@ -30,7 +30,7 @@ exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attribut
     }
     for (var leaf in sourceNode.leaves) {
         //recursively invoke function for each leaf goal
-        ret = evaluator.assessGoal(constraints, sourceNode.leaves[leaf], attributes, category);
+        ret = evaluator.assessGoal(constraints, sourceNode.leaves[leaf], attributes, optimum);
         // if a leaf goal is accepted, then add it to the pruned tree
         if (ret !== 0) {
             leaves.push(sourceNode.leaves[leaf]);

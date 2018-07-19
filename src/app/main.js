@@ -26,8 +26,6 @@ var server = app.listen(port, function () {
 	console.log("Resolution Engine listening on port "+port);
 })
 
-//required to parse JSON requests
-//app.use(bodyParser.json({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded());
 
@@ -39,10 +37,16 @@ app.post('/api/filterBlueprints', function (req, res) {
     var list = JSON.parse(req.body.candidates);
     var resultSet = [];
     //console.log(req);
-    //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
+    //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
+
+    //identify best value for each attribute (considering all blueprints)
+    var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
+    console.log(optimumDUValues);
+
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
+        //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
         console.log(methodNames);
         var methods = blueprint.DATA_MANAGEMENT;
         for (var methodName in methodNames) {
@@ -53,13 +57,13 @@ app.post('/api/filterBlueprints', function (req, res) {
                     
                     //compute data utility score
                     var dataUtilityScore = ranker.computeScore(requirements.attributes.dataUtility,
-                        requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, "dataUtility");
+                        requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, optimumDUValues);
                     //compute security score
                     var securityScore = ranker.computeScore(requirements.attributes.security,
-                        requirements.goalTrees.security, methods[method].attributes.security, "security");
+                        requirements.goalTrees.security, methods[method].attributes.security, undefined);
                     //compute privacy score
                     var privacyScore = ranker.computeScore(requirements.attributes.privacy,
-                        requirements.goalTrees.privacy, methods[method].attributes.privacy, "privacy");
+                        requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                     //compute global score
                     console.log("score ok");
                     console.log(dataUtilityScore);
@@ -75,11 +79,14 @@ app.post('/api/filterBlueprints', function (req, res) {
                         trees.method_id = methodNames[methodName];
                         trees.goalTrees = {};
                         trees.goalTrees.dataUtility = treePruner.pruneGoalTree(requirements.attributes.dataUtility,
-                            requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, "dataUtility");
+                            requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, optimumDUValues);
+                        methods[method].attributes.dataUtility = requirements.attributes.dataUtility;
                         trees.goalTrees.security = treePruner.pruneGoalTree(requirements.attributes.security,
-                            requirements.goalTrees.security, methods[method].attributes.security, "security");
+                            requirements.goalTrees.security, methods[method].attributes.security, undefined);
+                        methods[method].attributes.security = requirements.attributes.security;
                         trees.goalTrees.privacy = treePruner.pruneGoalTree(requirements.attributes.privacy,
-                            requirements.goalTrees.privacy, methods[method].attributes.privacy, "privacy");
+                            requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
+                        methods[method].attributes.privacy = requirements.attributes.privacy;
                         blueprint.ABSTRACT_PROPERTIES = [trees];
                         //return blueprint with rank and pruned goal trees
                         var item = {
