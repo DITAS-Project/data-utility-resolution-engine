@@ -1,0 +1,4395 @@
+[{
+	"blueprint": {
+		"INTERNAL_STRUCTURE": {
+			"Overview": {
+				"name": "DITAS Machine 1 - Soraluce FS",
+				"description": "VDC blueprint for the 'DITAS Machines 1 - Soraluce FS' at Ideko",
+				"tags": [{
+						"method_id": "GetHistoricalData",
+						"tags": ["machine", "batch", "data", "json"]
+					},
+					{
+						"method_id": "GetStreamingData",
+						"tags": ["machine", "stream", "streaming", "data", "json"]
+					},
+					{
+						"method_id": "GetIndicatorsData",
+						"tags": ["indicators", "batch", "data", "json"]
+					}
+				]
+			},
+			"Data_Sources": [{
+					"id": "MachineTimeseriesDatabase",
+					"description": "Machine timeseries database (InfluxDB) located in the smart box of the machine",
+					"location": "edge",
+					"class": "time-series database",
+					"type": "InfluxDB",
+					"parameters": {
+						"ip": "172.16.33.125",
+						"port": "****",
+						"user": "****",
+						"password": "****",
+						"database": "****"
+					},
+					"schema": {
+						"TO-DO": "[Borja - To define the schema of the database. Check Javi Escaqrtin's CSV data examples to devise the future influxDB structure]"
+					}
+				},
+				{
+					"id": "InboxStreamingAPI",
+					"description": "In-box streaming API served directly from the interoperability module on the smart box",
+					"location": "edge",
+					"class": "data stream",
+					"type": "rest",
+					"parameters": {
+						"url": "https://172.16.33.125",
+						"port": "****"
+					}
+				},
+				{
+					"id": "SavvyCloudAPI",
+					"description": "Savvy cloud API with both the streaming and REST endpoints",
+					"location": "cloud",
+					"class": "api",
+					"type": "rest",
+					"parameters": {
+						"readme": "The following key / secret are the credentials used in the Node-RED flow.",
+						"api-key": "****",
+						"api-secret": "****"
+					}
+				}
+			],
+			"Flow": {
+				"platform": "Node-RED",
+				"source_code": [{
+						"id": "92549871.7749d8",
+						"type": "tab",
+						"label": "GetHistoricalData",
+						"disabled": false,
+						"info": "Returns the corresponding data values for to the given parameters."
+					},
+					{
+						"id": "acf59602.264d18",
+						"type": "tab",
+						"label": "GetStreamingData",
+						"disabled": false,
+						"info": "Returns the streaming data for the parameters given."
+					},
+					{
+						"id": "ffbc8cbb.da735",
+						"type": "tab",
+						"label": "GetIndicatorsData",
+						"disabled": false,
+						"info": ""
+					},
+					{
+						"id": "bf7664dd.0fec48",
+						"type": "tab",
+						"label": "CAF",
+						"disabled": false,
+						"info": "Entry point for the CAF"
+					},
+					{
+						"id": "2964b3f3.ee5bfc",
+						"type": "MySQLdatabase",
+						"z": "",
+						"host": "",
+						"port": "3306",
+						"db": "ditas_dummy_example",
+						"tz": ""
+					},
+					{
+						"id": "12c3fc1d.6313a4",
+						"type": "CassandraDatabase",
+						"z": "",
+						"hosts": "",
+						"port": "9042",
+						"keyspace": "ditas"
+					},
+					{
+						"id": "ebc731b5.eb8a98",
+						"type": "influxdb",
+						"z": "",
+						"hostname": "172.16.33.125",
+						"port": "8086",
+						"protocol": "http",
+						"database": "defaultdb",
+						"name": "InfluxDB (Smart Box 11 - DITAS Machine 1)",
+						"usetls": false,
+						"tls": ""
+					},
+					{
+						"id": "d9278a08.745788",
+						"type": "savvy",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "data",
+						"x": 770,
+						"y": 300,
+						"wires": [
+							[
+								"634b5a7f.61fa34"
+							]
+						]
+					},
+					{
+						"id": "634b5a7f.61fa34",
+						"type": "http response",
+						"z": "92549871.7749d8",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 990,
+						"y": 320,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bb795321.eeab8",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory\n    msg.locationId = queryParams.location;\n    msg.machineId = queryParams.machine;\n    \n    // Mandatory timestamps\n    msg.fromTs = queryParams.from;\n    msg.toTs = queryParams.to;\n    \n    // Optional\n    msg.groupId = undefined;\n    msg.indicatorId = undefined;\n    if (queryParams.group !== undefined)\n        msg.groupId = queryParams.group\n    if (queryParams.indicator !== undefined)\n        msg.indicatorId = queryParams.indicator\n    \n    return msg;\n}",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 510,
+						"y": 200,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "90399ffc.215b4",
+						"type": "savvy",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "stream",
+						"x": 730,
+						"y": 180,
+						"wires": [
+							[
+								"3fb02483.73346c"
+							]
+						]
+					},
+					{
+						"id": "3fb02483.73346c",
+						"type": "http response",
+						"z": "acf59602.264d18",
+						"name": "http",
+						"statusCode": "",
+						"streamResponse": "1",
+						"headers": {
+							"Transfer-Encoding": "chunked",
+							"Content-type": "text/json; charset=UTF-8"
+						},
+						"x": 930,
+						"y": 180,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "7dcef958.7befd8",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory - can be comma separated list of machines\n    msg.machineId = queryParams.machines;\n    \n    return msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 430,
+						"y": 100,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "bbb156bf.cae418",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "48c6bb17.28ef04",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 500,
+						"y": 360,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "6c391f38.b49a",
+						"type": "http in",
+						"z": "bf7664dd.0fec48",
+						"name": "CAF",
+						"url": "/caf/:exposed_method",
+						"method": "get",
+						"upload": false,
+						"swaggerDoc": "",
+						"x": 170,
+						"y": 260,
+						"wires": [
+							[
+								"a34c3ab7.2b2648"
+							]
+						]
+					},
+					{
+						"id": "c6354a5f.9a27b8",
+						"type": "link in",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"links": [
+							"483696d9.5a2a18",
+							"d07c247f.32b3a8"
+						],
+						"x": 195,
+						"y": 180,
+						"wires": [
+							[
+								"7dcef958.7befd8",
+								"bbb156bf.cae418"
+							]
+						]
+					},
+					{
+						"id": "a34c3ab7.2b2648",
+						"type": "switch",
+						"z": "bf7664dd.0fec48",
+						"name": "method",
+						"property": "req.params.exposed_method",
+						"propertyType": "msg",
+						"rules": [{
+								"t": "eq",
+								"v": "GetHistoricalData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetStreamingData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetIndicatorsData",
+								"vt": "str"
+							},
+							{
+								"t": "else"
+							}
+						],
+						"checkall": "true",
+						"repair": false,
+						"outputs": 4,
+						"x": 400,
+						"y": 260,
+						"wires": [
+							[
+								"78601f23.39967"
+							],
+							[
+								"483696d9.5a2a18"
+							],
+							[
+								"b682e12c.b9d188"
+							],
+							[
+								"bfc0d085.f305"
+							]
+						]
+					},
+					{
+						"id": "78601f23.39967",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetHistoricalData",
+						"links": [
+							"f09145e4.b52c08"
+						],
+						"x": 675,
+						"y": 220,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "483696d9.5a2a18",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"c6354a5f.9a27b8"
+						],
+						"x": 675,
+						"y": 259,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bfc0d085.f305",
+						"type": "function",
+						"z": "bf7664dd.0fec48",
+						"name": "method not exists",
+						"func": "msg.payload = \"The exposed doesn't exist: \" + msg.req.params.exposed_method;\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 630,
+						"y": 400,
+						"wires": [
+							[
+								"f5884c46.ee402"
+							]
+						]
+					},
+					{
+						"id": "f5884c46.ee402",
+						"type": "http response",
+						"z": "bf7664dd.0fec48",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 830,
+						"y": 400,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "f09145e4.b52c08",
+						"type": "link in",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"links": [
+							"78601f23.39967"
+						],
+						"x": 275,
+						"y": 280,
+						"wires": [
+							[
+								"bb795321.eeab8",
+								"48c6bb17.28ef04"
+							]
+						]
+					},
+					{
+						"id": "49c76178.372888",
+						"type": "http response",
+						"z": "ffbc8cbb.da735",
+						"name": "",
+						"statusCode": "",
+						"headers": {
+
+						},
+						"x": 770,
+						"y": 580,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "fcfdcb1c.53ca18",
+						"type": "link in",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"links": [
+							"b682e12c.b9d188"
+						],
+						"x": 195,
+						"y": 120,
+						"wires": [
+							[
+								"f26e6103.2732a"
+							]
+						]
+					},
+					{
+						"id": "f26e6103.2732a",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Generate InfluxDB query",
+						"func": "// First of all, if the node is clossing the connection, do nothing\nif (msg.connectionClosed !== true)\n{\n    // Get the variables from the query\n    var queryParams = msg.req.query;\n    \n    // Get timestamps and convert them to ISO string (mandatory for InfluxDB)\n    var fromTs = (new Date(Number(queryParams.from))).toISOString();\n    var toTs = (new Date(Number(queryParams.to))).toISOString();\n\n    // Get indicator list\n    var indicatorList = queryParams.indicators;\n\n    // Set the InfluxDB query\n    msg.query = \"SELECT * FROM \" + indicatorList + \" WHERE time > '\" + fromTs + \"' AND time < '\" + toTs + \"'\";\n\t\n\treturn msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 120,
+						"wires": [
+							[
+								"859e9e3c.f07058"
+							]
+						]
+					},
+					{
+						"id": "859e9e3c.f07058",
+						"type": "influxdb in",
+						"z": "ffbc8cbb.da735",
+						"influxdb": "ebc731b5.eb8a98",
+						"name": "Query InfluxDB",
+						"query": "",
+						"rawOutput": true,
+						"precision": "",
+						"retentionPolicy": "",
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"8ace18d8.1a717"
+							]
+						]
+					},
+					{
+						"id": "1739c7cb.b94798",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Parse InfluxDB response",
+						"func": "// See the comment node for a large comment for this function.\n\n// Get InfluxDB response object\ninfluxDBResponse = msg.influxDBResponse;\n\n// Get variable list names from the Savvy node and parse them to a JSON object\nvariableList = msg.payload;\nindicatorsJSONObj = JSON.parse(variableList)['indicators'];\n\n// If the influxDBResponse is not empty, keep going\nif (typeof influxDBResponse !== 'undefined')\n{\n\n    // Define final array\n    var outputArray = []\n    \n    // For each line of the response, create the proper structure\n    influxDBResponse.forEach(function(element)\n    {\n        \n        // One for for each indicator id\n        var itemObject = new Object();\n        \n        // Be careful, InfluxDB returns the indicatorId on the \".name\" path\n        // This is because the name of the measurement is the indicatorId itself\n        itemObject.indicatorId = element.name;\n        itemObject.indicatorName = getIndicatorName(itemObject.indicatorId); // Get real indicator name\n        \n        // Generate empty data array\n        var dataArray = []\n    \n        // Loop the data, and generate the proper structure\n        element.values.forEach(function(innerData)\n        {\n            var dataObject = new Object();\n            dataObject.timestamp = innerData[0]; // Timestamp is always on pos 0\n            dataObject.value = innerData[2]; // Value is always on pos 2\n            dataArray.push(dataObject)\n        });\n        itemObject.data = dataArray;\n    \n        // Push the entire object to the output array\n        outputArray.push(itemObject)\n        \n    });\n    \n    // Set payload to the output array\n    msg.payload = outputArray;\n}\nelse\n{\n    // TODO: Still to be defined\n    /*\n    responseArray = [];\n    var responseObj = new Object();\n    responseObj.status = \"404\";\n    responseObj.message = \"No data for requested parameters\";\n    */\n    msg.payload = \"No data for requested parameters\";\n}\n\n/*\n* From a given IndicatorId, return its real name \n*\n* @param string - indicatorId - Id of the indicator\n* @return string - Name of the indicator\n*/\nfunction getIndicatorName(indicatorId)\n{\n    var i;\n    for (i = 0; i < indicatorsJSONObj.length; i++)\n    {\n        if (indicatorsJSONObj[i]['indicatorId'] === indicatorId)\n        {\n            return indicatorsJSONObj[i]['indicatorName'];\n        } \n    }\n}\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 580,
+						"wires": [
+							[
+								"49c76178.372888"
+							]
+						]
+					},
+					{
+						"id": "34c5f4ac.28fc4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "READ: Parsing explanation",
+						"info": "This code gets the raw output from the InfluxDB node,\nand parses it to get the following output:\n\n[\n\t{\n\t\tindicatorId = I_IND_1,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t},\n\t{\n\t\tindicatorId = I_IND_2,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t}\n]\n*/",
+						"x": 450,
+						"y": 620,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "3721c516.23799a",
+						"type": "savvy",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"cncmanufacturer": "",
+						"endpoint": "172.16.33.202",
+						"returntype": "utf-8",
+						"apitype": "local",
+						"port": "8006",
+						"key": "",
+						"secret": "",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "details-indicator",
+						"x": 430,
+						"y": 480,
+						"wires": [
+							[
+								"1739c7cb.b94798"
+							]
+						]
+					},
+					{
+						"id": "8ace18d8.1a717",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Manage InfluxDB reponse variable",
+						"func": "// Set initial value as null\nmsg.influxDBResponses = null;\n\n// Get response from the proper path from the InfluxDB node\nvar influxDBResponse = msg.payload['results'][0]['series'];\n\n// If it's defined, set the variable\nif (typeof influxDBResponse !== 'undefined')\n{\n    // Set the InfluxDB response on the proper msg path\n    msg.influxDBResponse = influxDBResponse;\n} \nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 480,
+						"y": 360,
+						"wires": [
+							[
+								"3721c516.23799a"
+							]
+						]
+					},
+					{
+						"id": "688c12bf.10ae4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "InfluxDB query format",
+						"info": "The InfluxDB query has the following form:\n\nSELECT\n    *\nFROM\n    I_CNK_X1Z8SG_BT67AW,I_CNK_X1Z8SG_LPTD3K\nWHERE\n    time > '2018-07-17T07:10:00.000Z'\n    AND\n    time < '2018-07-17T07:15:00.000Z'\n    \n    \n",
+						"x": 440,
+						"y": 80,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "b682e12c.b9d188",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"fcfdcb1c.53ca18"
+						],
+						"x": 675,
+						"y": 300,
+						"wires": [
+
+						]
+					}
+				]
+			},
+			"Testing_Output_Data": [{
+					"method_id": "GetHistoricalData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetStreamingData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetIndicatorsData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				}
+			]
+		},
+		"DATA_MANAGEMENT": [{
+				"method_id": "GetHistoricalData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_18",
+							"description": "Throughput 1.8",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 1.8,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetStreamingData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "timeliness_065",
+							"description": "Timeliness 0.65",
+							"type": "Timeliness",
+							"properties": {
+								"timeliness": {
+									"maximum": 0.65,
+									"unit": "NONE"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetIndicatorsData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_8099",
+							"description": "Availability 80-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 80,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_14",
+							"description": "Throughput 1.4",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 1.4,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			}
+		],
+		"ABSTRACT_PROPERTIES": {},
+		"COOKBOOK_APPENDIX": {},
+		"EXPOSED_API": {
+			"openapi": "3.0.0",
+			"info": {
+				"title": "IDEKO VDC",
+				"description": "VDC methods for the IDEKO use case",
+				"version": "0.0.1"
+			},
+			"paths": {
+				"/GetHistoricalData": {
+					"get": {
+						"summary": "Returns the corresponding data values for to the given parameters.",
+						"operationId": "GetHistoricalData",
+						"parameters": [{
+								"in": "query",
+								"name": "location",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "machine",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "group",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "indicator",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetHistoricalDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetStreamingData": {
+					"get": {
+						"summary": "Returns the streaming data for the parameters given.",
+						"operationId": "GetStreamingData",
+						"parameters": [{
+							"in": "query",
+							"name": "machines",
+							"required": true,
+							"schema": {
+								"type": "string"
+							}
+						}],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetStreamingDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetIndicatorsData": {
+					"get": {
+						"summary": "Returns the data and the human names for the given indicatorIdList of the given date range. The from and to values must be timestamps in milliseconds. Indicators values are gathered from the InfluxDB deployed in the smart-box. The human names are gathered from the in-box API.",
+						"operationId": "GetIndicatorsData",
+						"parameters": [{
+								"in": "query",
+								"name": "indicators",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetIndicatorsDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				}
+			},
+			"components": {
+				"schemas": {
+					"ErrorResponse": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "integer"
+							},
+							"code": {
+								"type": "integer"
+							},
+							"message": {
+								"type": "string"
+							},
+							"link": {
+								"type": "string"
+							},
+							"developerMessage": {
+								"type": "string"
+							}
+						}
+					},
+					"GetHistoricalDataResponse": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
+					},
+					"GetStreamingDataResponse": {
+						"type": "object",
+						"properties": {
+							"machine": {
+								"type": "string"
+							},
+							"group": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"additionalProperties": {
+											"type": "integer"
+										},
+										"timestamp": {
+											"type": "object"
+										}
+									}
+								}
+							}
+						}
+					},
+					"GetIndicatorsDataResponse": {
+						"type": "object",
+						"properties": {
+							"indicatorId": {
+								"type": "string"
+							},
+							"indicatorName": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"timestamp": {
+											"type": "string"
+										},
+										"value": {
+											"oneOf": [{
+													"type": "number"
+												},
+												{
+													"type": "string"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	,
+	"methodNames": [
+		"GetIndicatorsData"
+	]
+},
+{
+	"blueprint": {
+		"INTERNAL_STRUCTURE": {
+			"Overview": {
+				"name": "DITAS Machine 2 - Soraluce FS",
+				"description": "VDC blueprint for the 'DITAS Machines 2 - Soraluce FS' at Ideko",
+				"tags": [{
+						"method_id": "GetHistoricalData",
+						"tags": ["machine", "batch", "data", "json"]
+					},
+					{
+						"method_id": "GetStreamingData",
+						"tags": ["machine", "stream", "streaming", "data", "json"]
+					},
+					{
+						"method_id": "GetIndicatorsData",
+						"tags": ["indicators", "batch", "data", "json"]
+					}
+				]
+			},
+			"Data_Sources": [{
+					"id": "MachineTimeseriesDatabase",
+					"description": "Machine timeseries database (InfluxDB) located in the smart box of the machine",
+					"location": "edge",
+					"class": "time-series database",
+					"type": "InfluxDB",
+					"parameters": {
+						"ip": "172.16.32.215",
+						"port": "****",
+						"user": "****",
+						"password": "****",
+						"database": "****"
+					},
+					"schema": {
+						"TO-DO": "[Borja - To define the schema of the database. Check Javi Escaqrtin's CSV data examples to devise the future influxDB structure]"
+					}
+				},
+				{
+					"id": "InboxStreamingAPI",
+					"description": "In-box streaming API served directly from the interoperability module on the smart box",
+					"location": "edge",
+					"class": "data stream",
+					"type": "rest",
+					"parameters": {
+						"url": "https://172.16.32.215",
+						"port": "****"
+					}
+				},
+				{
+					"id": "SavvyCloudAPI",
+					"description": "Savvy cloud API with both the streaming and REST endpoints",
+					"location": "cloud",
+					"class": "api",
+					"type": "rest",
+					"parameters": {
+						"readme": "The following key / secret are the credentials used in the Node-RED flow.",
+						"api-key": "****",
+						"api-secret": "****"
+					}
+				}
+			],
+			"Flow": {
+				"platform": "Node-RED",
+				"source_code": [{
+						"id": "92549871.7749d8",
+						"type": "tab",
+						"label": "GetHistoricalData",
+						"disabled": false,
+						"info": "Returns the corresponding data values for to the given parameters."
+					},
+					{
+						"id": "acf59602.264d18",
+						"type": "tab",
+						"label": "GetStreamingData",
+						"disabled": false,
+						"info": "Returns the streaming data for the parameters given."
+					},
+					{
+						"id": "ffbc8cbb.da735",
+						"type": "tab",
+						"label": "GetIndicatorsData",
+						"disabled": false,
+						"info": ""
+					},
+					{
+						"id": "bf7664dd.0fec48",
+						"type": "tab",
+						"label": "CAF",
+						"disabled": false,
+						"info": "Entry point for the CAF"
+					},
+					{
+						"id": "2964b3f3.ee5bfc",
+						"type": "MySQLdatabase",
+						"z": "",
+						"host": "",
+						"port": "3306",
+						"db": "ditas_dummy_example",
+						"tz": ""
+					},
+					{
+						"id": "12c3fc1d.6313a4",
+						"type": "CassandraDatabase",
+						"z": "",
+						"hosts": "",
+						"port": "9042",
+						"keyspace": "ditas"
+					},
+					{
+						"id": "ebc731b5.eb8a98",
+						"type": "influxdb",
+						"z": "",
+						"hostname": "172.16.32.215",
+						"port": "8086",
+						"protocol": "http",
+						"database": "defaultdb",
+						"name": "InfluxDB (Smart Box 15 - DITAS Machine 2)",
+						"usetls": false,
+						"tls": ""
+					},
+					{
+						"id": "d9278a08.745788",
+						"type": "savvy",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "data",
+						"x": 770,
+						"y": 300,
+						"wires": [
+							[
+								"634b5a7f.61fa34"
+							]
+						]
+					},
+					{
+						"id": "634b5a7f.61fa34",
+						"type": "http response",
+						"z": "92549871.7749d8",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 990,
+						"y": 320,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bb795321.eeab8",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory\n    msg.locationId = queryParams.location;\n    msg.machineId = queryParams.machine;\n    \n    // Mandatory timestamps\n    msg.fromTs = queryParams.from;\n    msg.toTs = queryParams.to;\n    \n    // Optional\n    msg.groupId = undefined;\n    msg.indicatorId = undefined;\n    if (queryParams.group !== undefined)\n        msg.groupId = queryParams.group\n    if (queryParams.indicator !== undefined)\n        msg.indicatorId = queryParams.indicator\n    \n    return msg;\n}",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 510,
+						"y": 200,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "90399ffc.215b4",
+						"type": "savvy",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "stream",
+						"x": 730,
+						"y": 180,
+						"wires": [
+							[
+								"3fb02483.73346c"
+							]
+						]
+					},
+					{
+						"id": "3fb02483.73346c",
+						"type": "http response",
+						"z": "acf59602.264d18",
+						"name": "http",
+						"statusCode": "",
+						"streamResponse": "1",
+						"headers": {
+							"Transfer-Encoding": "chunked",
+							"Content-type": "text/json; charset=UTF-8"
+						},
+						"x": 930,
+						"y": 180,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "7dcef958.7befd8",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory - can be comma separated list of machines\n    msg.machineId = queryParams.machines;\n    \n    return msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 430,
+						"y": 100,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "bbb156bf.cae418",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "48c6bb17.28ef04",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 500,
+						"y": 360,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "6c391f38.b49a",
+						"type": "http in",
+						"z": "bf7664dd.0fec48",
+						"name": "CAF",
+						"url": "/caf/:exposed_method",
+						"method": "get",
+						"upload": false,
+						"swaggerDoc": "",
+						"x": 170,
+						"y": 260,
+						"wires": [
+							[
+								"a34c3ab7.2b2648"
+							]
+						]
+					},
+					{
+						"id": "c6354a5f.9a27b8",
+						"type": "link in",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"links": [
+							"483696d9.5a2a18",
+							"d07c247f.32b3a8"
+						],
+						"x": 195,
+						"y": 180,
+						"wires": [
+							[
+								"7dcef958.7befd8",
+								"bbb156bf.cae418"
+							]
+						]
+					},
+					{
+						"id": "a34c3ab7.2b2648",
+						"type": "switch",
+						"z": "bf7664dd.0fec48",
+						"name": "method",
+						"property": "req.params.exposed_method",
+						"propertyType": "msg",
+						"rules": [{
+								"t": "eq",
+								"v": "GetHistoricalData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetStreamingData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetIndicatorsData",
+								"vt": "str"
+							},
+							{
+								"t": "else"
+							}
+						],
+						"checkall": "true",
+						"repair": false,
+						"outputs": 4,
+						"x": 400,
+						"y": 260,
+						"wires": [
+							[
+								"78601f23.39967"
+							],
+							[
+								"483696d9.5a2a18"
+							],
+							[
+								"b682e12c.b9d188"
+							],
+							[
+								"bfc0d085.f305"
+							]
+						]
+					},
+					{
+						"id": "78601f23.39967",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetHistoricalData",
+						"links": [
+							"f09145e4.b52c08"
+						],
+						"x": 675,
+						"y": 220,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "483696d9.5a2a18",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"c6354a5f.9a27b8"
+						],
+						"x": 675,
+						"y": 259,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bfc0d085.f305",
+						"type": "function",
+						"z": "bf7664dd.0fec48",
+						"name": "method not exists",
+						"func": "msg.payload = \"The exposed doesn't exist: \" + msg.req.params.exposed_method;\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 630,
+						"y": 400,
+						"wires": [
+							[
+								"f5884c46.ee402"
+							]
+						]
+					},
+					{
+						"id": "f5884c46.ee402",
+						"type": "http response",
+						"z": "bf7664dd.0fec48",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 830,
+						"y": 400,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "f09145e4.b52c08",
+						"type": "link in",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"links": [
+							"78601f23.39967"
+						],
+						"x": 275,
+						"y": 280,
+						"wires": [
+							[
+								"bb795321.eeab8",
+								"48c6bb17.28ef04"
+							]
+						]
+					},
+					{
+						"id": "49c76178.372888",
+						"type": "http response",
+						"z": "ffbc8cbb.da735",
+						"name": "",
+						"statusCode": "",
+						"headers": {
+
+						},
+						"x": 770,
+						"y": 580,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "fcfdcb1c.53ca18",
+						"type": "link in",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"links": [
+							"b682e12c.b9d188"
+						],
+						"x": 195,
+						"y": 120,
+						"wires": [
+							[
+								"f26e6103.2732a"
+							]
+						]
+					},
+					{
+						"id": "f26e6103.2732a",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Generate InfluxDB query",
+						"func": "// First of all, if the node is clossing the connection, do nothing\nif (msg.connectionClosed !== true)\n{\n    // Get the variables from the query\n    var queryParams = msg.req.query;\n    \n    // Get timestamps and convert them to ISO string (mandatory for InfluxDB)\n    var fromTs = (new Date(Number(queryParams.from))).toISOString();\n    var toTs = (new Date(Number(queryParams.to))).toISOString();\n\n    // Get indicator list\n    var indicatorList = queryParams.indicators;\n\n    // Set the InfluxDB query\n    msg.query = \"SELECT * FROM \" + indicatorList + \" WHERE time > '\" + fromTs + \"' AND time < '\" + toTs + \"'\";\n\t\n\treturn msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 120,
+						"wires": [
+							[
+								"859e9e3c.f07058"
+							]
+						]
+					},
+					{
+						"id": "859e9e3c.f07058",
+						"type": "influxdb in",
+						"z": "ffbc8cbb.da735",
+						"influxdb": "ebc731b5.eb8a98",
+						"name": "Query InfluxDB",
+						"query": "",
+						"rawOutput": true,
+						"precision": "",
+						"retentionPolicy": "",
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"8ace18d8.1a717"
+							]
+						]
+					},
+					{
+						"id": "1739c7cb.b94798",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Parse InfluxDB response",
+						"func": "// See the comment node for a large comment for this function.\n\n// Get InfluxDB response object\ninfluxDBResponse = msg.influxDBResponse;\n\n// Get variable list names from the Savvy node and parse them to a JSON object\nvariableList = msg.payload;\nindicatorsJSONObj = JSON.parse(variableList)['indicators'];\n\n// If the influxDBResponse is not empty, keep going\nif (typeof influxDBResponse !== 'undefined')\n{\n\n    // Define final array\n    var outputArray = []\n    \n    // For each line of the response, create the proper structure\n    influxDBResponse.forEach(function(element)\n    {\n        \n        // One for for each indicator id\n        var itemObject = new Object();\n        \n        // Be careful, InfluxDB returns the indicatorId on the \".name\" path\n        // This is because the name of the measurement is the indicatorId itself\n        itemObject.indicatorId = element.name;\n        itemObject.indicatorName = getIndicatorName(itemObject.indicatorId); // Get real indicator name\n        \n        // Generate empty data array\n        var dataArray = []\n    \n        // Loop the data, and generate the proper structure\n        element.values.forEach(function(innerData)\n        {\n            var dataObject = new Object();\n            dataObject.timestamp = innerData[0]; // Timestamp is always on pos 0\n            dataObject.value = innerData[2]; // Value is always on pos 2\n            dataArray.push(dataObject)\n        });\n        itemObject.data = dataArray;\n    \n        // Push the entire object to the output array\n        outputArray.push(itemObject)\n        \n    });\n    \n    // Set payload to the output array\n    msg.payload = outputArray;\n}\nelse\n{\n    // TODO: Still to be defined\n    /*\n    responseArray = [];\n    var responseObj = new Object();\n    responseObj.status = \"404\";\n    responseObj.message = \"No data for requested parameters\";\n    */\n    msg.payload = \"No data for requested parameters\";\n}\n\n/*\n* From a given IndicatorId, return its real name \n*\n* @param string - indicatorId - Id of the indicator\n* @return string - Name of the indicator\n*/\nfunction getIndicatorName(indicatorId)\n{\n    var i;\n    for (i = 0; i < indicatorsJSONObj.length; i++)\n    {\n        if (indicatorsJSONObj[i]['indicatorId'] === indicatorId)\n        {\n            return indicatorsJSONObj[i]['indicatorName'];\n        } \n    }\n}\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 580,
+						"wires": [
+							[
+								"49c76178.372888"
+							]
+						]
+					},
+					{
+						"id": "34c5f4ac.28fc4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "READ: Parsing explanation",
+						"info": "This code gets the raw output from the InfluxDB node,\nand parses it to get the following output:\n\n[\n\t{\n\t\tindicatorId = I_IND_1,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t},\n\t{\n\t\tindicatorId = I_IND_2,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t}\n]\n*/",
+						"x": 450,
+						"y": 620,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "3721c516.23799a",
+						"type": "savvy",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"cncmanufacturer": "",
+						"endpoint": "172.16.33.202",
+						"returntype": "utf-8",
+						"apitype": "local",
+						"port": "8006",
+						"key": "",
+						"secret": "",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "details-indicator",
+						"x": 430,
+						"y": 480,
+						"wires": [
+							[
+								"1739c7cb.b94798"
+							]
+						]
+					},
+					{
+						"id": "8ace18d8.1a717",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Manage InfluxDB reponse variable",
+						"func": "// Set initial value as null\nmsg.influxDBResponses = null;\n\n// Get response from the proper path from the InfluxDB node\nvar influxDBResponse = msg.payload['results'][0]['series'];\n\n// If it's defined, set the variable\nif (typeof influxDBResponse !== 'undefined')\n{\n    // Set the InfluxDB response on the proper msg path\n    msg.influxDBResponse = influxDBResponse;\n} \nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 480,
+						"y": 360,
+						"wires": [
+							[
+								"3721c516.23799a"
+							]
+						]
+					},
+					{
+						"id": "688c12bf.10ae4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "InfluxDB query format",
+						"info": "The InfluxDB query has the following form:\n\nSELECT\n    *\nFROM\n    I_CNK_X1Z8SG_BT67AW,I_CNK_X1Z8SG_LPTD3K\nWHERE\n    time > '2018-07-17T07:10:00.000Z'\n    AND\n    time < '2018-07-17T07:15:00.000Z'\n    \n    \n",
+						"x": 440,
+						"y": 80,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "b682e12c.b9d188",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"fcfdcb1c.53ca18"
+						],
+						"x": 675,
+						"y": 300,
+						"wires": [
+
+						]
+					}
+				]
+			},
+			"Testing_Output_Data": [{
+					"method_id": "GetHistoricalData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetStreamingData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetIndicatorsData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				}
+			]
+		},
+		"DATA_MANAGEMENT": [{
+				"method_id": "GetHistoricalData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_2",
+							"description": "Throughput 2",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 2,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetStreamingData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "timeliness_065",
+							"description": "Timeliness 0.65",
+							"type": "Timeliness",
+							"properties": {
+								"timeliness": {
+									"maximum": 0.65,
+									"unit": "NONE"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetIndicatorsData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_8099",
+							"description": "Availability 80-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 80,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_16",
+							"description": "Throughput 1.6",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 1.6,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			}
+		],
+		"ABSTRACT_PROPERTIES": {},
+		"COOKBOOK_APPENDIX": {},
+		"EXPOSED_API": {
+			"openapi": "3.0.0",
+			"info": {
+				"title": "IDEKO VDC",
+				"description": "VDC methods for the IDEKO use case",
+				"version": "0.0.1"
+			},
+			"paths": {
+				"/GetHistoricalData": {
+					"get": {
+						"summary": "Returns the corresponding data values for to the given parameters.",
+						"operationId": "GetHistoricalData",
+						"parameters": [{
+								"in": "query",
+								"name": "location",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "machine",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "group",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "indicator",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetHistoricalDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetStreamingData": {
+					"get": {
+						"summary": "Returns the streaming data for the parameters given.",
+						"operationId": "GetStreamingData",
+						"parameters": [{
+							"in": "query",
+							"name": "machines",
+							"required": true,
+							"schema": {
+								"type": "string"
+							}
+						}],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetStreamingDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetIndicatorsData": {
+					"get": {
+						"summary": "Returns the data and the human names for the given indicatorIdList of the given date range. The from and to values must be timestamps in milliseconds. Indicators values are gathered from the InfluxDB deployed in the smart-box. The human names are gathered from the in-box API.",
+						"operationId": "GetIndicatorsData",
+						"parameters": [{
+								"in": "query",
+								"name": "indicators",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetIndicatorsDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				}
+			},
+			"components": {
+				"schemas": {
+					"ErrorResponse": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "integer"
+							},
+							"code": {
+								"type": "integer"
+							},
+							"message": {
+								"type": "string"
+							},
+							"link": {
+								"type": "string"
+							},
+							"developerMessage": {
+								"type": "string"
+							}
+						}
+					},
+					"GetHistoricalDataResponse": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
+					},
+					"GetStreamingDataResponse": {
+						"type": "object",
+						"properties": {
+							"machine": {
+								"type": "string"
+							},
+							"group": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"additionalProperties": {
+											"type": "integer"
+										},
+										"timestamp": {
+											"type": "object"
+										}
+									}
+								}
+							}
+						}
+					},
+					"GetIndicatorsDataResponse": {
+						"type": "object",
+						"properties": {
+							"indicatorId": {
+								"type": "string"
+							},
+							"indicatorName": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"timestamp": {
+											"type": "string"
+										},
+										"value": {
+											"oneOf": [{
+													"type": "number"
+												},
+												{
+													"type": "string"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	,
+	"methodNames": [
+		"GetIndicatorsData"
+	]
+},
+{
+	"blueprint": {
+		"INTERNAL_STRUCTURE": {
+			"Overview": {
+				"name": "DITAS Machine 3 - Soraluce FS",
+				"description": "VDC blueprint for the 'DITAS Machines 3 - Soraluce FS' at Ideko",
+				"tags": [{
+						"method_id": "GetHistoricalData",
+						"tags": ["machine", "batch", "data", "json"]
+					},
+					{
+						"method_id": "GetStreamingData",
+						"tags": ["machine", "stream", "streaming", "data", "json"]
+					},
+					{
+						"method_id": "GetIndicatorsData",
+						"tags": ["indicators", "batch", "data", "json"]
+					}
+				]
+			},
+			"Data_Sources": [{
+					"id": "MachineTimeseriesDatabase",
+					"description": "Machine timeseries database (InfluxDB) located in the smart box of the machine",
+					"location": "edge",
+					"class": "time-series database",
+					"type": "InfluxDB",
+					"parameters": {
+						"ip": "172.16.33.202",
+						"port": "****",
+						"user": "****",
+						"password": "****",
+						"database": "****"
+					},
+					"schema": {
+						"TO-DO": "[Borja - To define the schema of the database. Check Javi Escaqrtin's CSV data examples to devise the future influxDB structure]"
+					}
+				},
+				{
+					"id": "InboxStreamingAPI",
+					"description": "In-box streaming API served directly from the interoperability module on the smart box",
+					"location": "edge",
+					"class": "data stream",
+					"type": "rest",
+					"parameters": {
+						"url": "https://172.16.33.202",
+						"port": "****"
+					}
+				},
+				{
+					"id": "SavvyCloudAPI",
+					"description": "Savvy cloud API with both the streaming and REST endpoints",
+					"location": "cloud",
+					"class": "api",
+					"type": "rest",
+					"parameters": {
+						"readme": "The following key / secret are the credentials used in the Node-RED flow.",
+						"api-key": "****",
+						"api-secret": "****"
+					}
+				}
+			],
+			"Flow": {
+				"platform": "Node-RED",
+				"source_code": [{
+						"id": "92549871.7749d8",
+						"type": "tab",
+						"label": "GetHistoricalData",
+						"disabled": false,
+						"info": "Returns the corresponding data values for to the given parameters."
+					},
+					{
+						"id": "acf59602.264d18",
+						"type": "tab",
+						"label": "GetStreamingData",
+						"disabled": false,
+						"info": "Returns the streaming data for the parameters given."
+					},
+					{
+						"id": "ffbc8cbb.da735",
+						"type": "tab",
+						"label": "GetIndicatorsData",
+						"disabled": false,
+						"info": ""
+					},
+					{
+						"id": "bf7664dd.0fec48",
+						"type": "tab",
+						"label": "CAF",
+						"disabled": false,
+						"info": "Entry point for the CAF"
+					},
+					{
+						"id": "2964b3f3.ee5bfc",
+						"type": "MySQLdatabase",
+						"z": "",
+						"host": "",
+						"port": "3306",
+						"db": "ditas_dummy_example",
+						"tz": ""
+					},
+					{
+						"id": "12c3fc1d.6313a4",
+						"type": "CassandraDatabase",
+						"z": "",
+						"hosts": "",
+						"port": "9042",
+						"keyspace": "ditas"
+					},
+					{
+						"id": "ebc731b5.eb8a98",
+						"type": "influxdb",
+						"z": "",
+						"hostname": "172.16.33.202",
+						"port": "8086",
+						"protocol": "http",
+						"database": "defaultdb",
+						"name": "InfluxDB (Smart Box 16 - DITAS Machine 4)",
+						"usetls": false,
+						"tls": ""
+					},
+					{
+						"id": "d9278a08.745788",
+						"type": "savvy",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "data",
+						"x": 770,
+						"y": 300,
+						"wires": [
+							[
+								"634b5a7f.61fa34"
+							]
+						]
+					},
+					{
+						"id": "634b5a7f.61fa34",
+						"type": "http response",
+						"z": "92549871.7749d8",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 990,
+						"y": 320,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bb795321.eeab8",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory\n    msg.locationId = queryParams.location;\n    msg.machineId = queryParams.machine;\n    \n    // Mandatory timestamps\n    msg.fromTs = queryParams.from;\n    msg.toTs = queryParams.to;\n    \n    // Optional\n    msg.groupId = undefined;\n    msg.indicatorId = undefined;\n    if (queryParams.group !== undefined)\n        msg.groupId = queryParams.group\n    if (queryParams.indicator !== undefined)\n        msg.indicatorId = queryParams.indicator\n    \n    return msg;\n}",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 510,
+						"y": 200,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "90399ffc.215b4",
+						"type": "savvy",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "stream",
+						"x": 730,
+						"y": 180,
+						"wires": [
+							[
+								"3fb02483.73346c"
+							]
+						]
+					},
+					{
+						"id": "3fb02483.73346c",
+						"type": "http response",
+						"z": "acf59602.264d18",
+						"name": "http",
+						"statusCode": "",
+						"streamResponse": "1",
+						"headers": {
+							"Transfer-Encoding": "chunked",
+							"Content-type": "text/json; charset=UTF-8"
+						},
+						"x": 930,
+						"y": 180,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "7dcef958.7befd8",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory - can be comma separated list of machines\n    msg.machineId = queryParams.machines;\n    \n    return msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 430,
+						"y": 100,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "bbb156bf.cae418",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "48c6bb17.28ef04",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 500,
+						"y": 360,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "6c391f38.b49a",
+						"type": "http in",
+						"z": "bf7664dd.0fec48",
+						"name": "CAF",
+						"url": "/caf/:exposed_method",
+						"method": "get",
+						"upload": false,
+						"swaggerDoc": "",
+						"x": 170,
+						"y": 260,
+						"wires": [
+							[
+								"a34c3ab7.2b2648"
+							]
+						]
+					},
+					{
+						"id": "c6354a5f.9a27b8",
+						"type": "link in",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"links": [
+							"483696d9.5a2a18",
+							"d07c247f.32b3a8"
+						],
+						"x": 195,
+						"y": 180,
+						"wires": [
+							[
+								"7dcef958.7befd8",
+								"bbb156bf.cae418"
+							]
+						]
+					},
+					{
+						"id": "a34c3ab7.2b2648",
+						"type": "switch",
+						"z": "bf7664dd.0fec48",
+						"name": "method",
+						"property": "req.params.exposed_method",
+						"propertyType": "msg",
+						"rules": [{
+								"t": "eq",
+								"v": "GetHistoricalData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetStreamingData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetIndicatorsData",
+								"vt": "str"
+							},
+							{
+								"t": "else"
+							}
+						],
+						"checkall": "true",
+						"repair": false,
+						"outputs": 4,
+						"x": 400,
+						"y": 260,
+						"wires": [
+							[
+								"78601f23.39967"
+							],
+							[
+								"483696d9.5a2a18"
+							],
+							[
+								"b682e12c.b9d188"
+							],
+							[
+								"bfc0d085.f305"
+							]
+						]
+					},
+					{
+						"id": "78601f23.39967",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetHistoricalData",
+						"links": [
+							"f09145e4.b52c08"
+						],
+						"x": 675,
+						"y": 220,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "483696d9.5a2a18",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"c6354a5f.9a27b8"
+						],
+						"x": 675,
+						"y": 259,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bfc0d085.f305",
+						"type": "function",
+						"z": "bf7664dd.0fec48",
+						"name": "method not exists",
+						"func": "msg.payload = \"The exposed doesn't exist: \" + msg.req.params.exposed_method;\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 630,
+						"y": 400,
+						"wires": [
+							[
+								"f5884c46.ee402"
+							]
+						]
+					},
+					{
+						"id": "f5884c46.ee402",
+						"type": "http response",
+						"z": "bf7664dd.0fec48",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 830,
+						"y": 400,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "f09145e4.b52c08",
+						"type": "link in",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"links": [
+							"78601f23.39967"
+						],
+						"x": 275,
+						"y": 280,
+						"wires": [
+							[
+								"bb795321.eeab8",
+								"48c6bb17.28ef04"
+							]
+						]
+					},
+					{
+						"id": "49c76178.372888",
+						"type": "http response",
+						"z": "ffbc8cbb.da735",
+						"name": "",
+						"statusCode": "",
+						"headers": {
+
+						},
+						"x": 770,
+						"y": 580,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "fcfdcb1c.53ca18",
+						"type": "link in",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"links": [
+							"b682e12c.b9d188"
+						],
+						"x": 195,
+						"y": 120,
+						"wires": [
+							[
+								"f26e6103.2732a"
+							]
+						]
+					},
+					{
+						"id": "f26e6103.2732a",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Generate InfluxDB query",
+						"func": "// First of all, if the node is clossing the connection, do nothing\nif (msg.connectionClosed !== true)\n{\n    // Get the variables from the query\n    var queryParams = msg.req.query;\n    \n    // Get timestamps and convert them to ISO string (mandatory for InfluxDB)\n    var fromTs = (new Date(Number(queryParams.from))).toISOString();\n    var toTs = (new Date(Number(queryParams.to))).toISOString();\n\n    // Get indicator list\n    var indicatorList = queryParams.indicators;\n\n    // Set the InfluxDB query\n    msg.query = \"SELECT * FROM \" + indicatorList + \" WHERE time > '\" + fromTs + \"' AND time < '\" + toTs + \"'\";\n\t\n\treturn msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 120,
+						"wires": [
+							[
+								"859e9e3c.f07058"
+							]
+						]
+					},
+					{
+						"id": "859e9e3c.f07058",
+						"type": "influxdb in",
+						"z": "ffbc8cbb.da735",
+						"influxdb": "ebc731b5.eb8a98",
+						"name": "Query InfluxDB",
+						"query": "",
+						"rawOutput": true,
+						"precision": "",
+						"retentionPolicy": "",
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"8ace18d8.1a717"
+							]
+						]
+					},
+					{
+						"id": "1739c7cb.b94798",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Parse InfluxDB response",
+						"func": "// See the comment node for a large comment for this function.\n\n// Get InfluxDB response object\ninfluxDBResponse = msg.influxDBResponse;\n\n// Get variable list names from the Savvy node and parse them to a JSON object\nvariableList = msg.payload;\nindicatorsJSONObj = JSON.parse(variableList)['indicators'];\n\n// If the influxDBResponse is not empty, keep going\nif (typeof influxDBResponse !== 'undefined')\n{\n\n    // Define final array\n    var outputArray = []\n    \n    // For each line of the response, create the proper structure\n    influxDBResponse.forEach(function(element)\n    {\n        \n        // One for for each indicator id\n        var itemObject = new Object();\n        \n        // Be careful, InfluxDB returns the indicatorId on the \".name\" path\n        // This is because the name of the measurement is the indicatorId itself\n        itemObject.indicatorId = element.name;\n        itemObject.indicatorName = getIndicatorName(itemObject.indicatorId); // Get real indicator name\n        \n        // Generate empty data array\n        var dataArray = []\n    \n        // Loop the data, and generate the proper structure\n        element.values.forEach(function(innerData)\n        {\n            var dataObject = new Object();\n            dataObject.timestamp = innerData[0]; // Timestamp is always on pos 0\n            dataObject.value = innerData[2]; // Value is always on pos 2\n            dataArray.push(dataObject)\n        });\n        itemObject.data = dataArray;\n    \n        // Push the entire object to the output array\n        outputArray.push(itemObject)\n        \n    });\n    \n    // Set payload to the output array\n    msg.payload = outputArray;\n}\nelse\n{\n    // TODO: Still to be defined\n    /*\n    responseArray = [];\n    var responseObj = new Object();\n    responseObj.status = \"404\";\n    responseObj.message = \"No data for requested parameters\";\n    */\n    msg.payload = \"No data for requested parameters\";\n}\n\n/*\n* From a given IndicatorId, return its real name \n*\n* @param string - indicatorId - Id of the indicator\n* @return string - Name of the indicator\n*/\nfunction getIndicatorName(indicatorId)\n{\n    var i;\n    for (i = 0; i < indicatorsJSONObj.length; i++)\n    {\n        if (indicatorsJSONObj[i]['indicatorId'] === indicatorId)\n        {\n            return indicatorsJSONObj[i]['indicatorName'];\n        } \n    }\n}\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 580,
+						"wires": [
+							[
+								"49c76178.372888"
+							]
+						]
+					},
+					{
+						"id": "34c5f4ac.28fc4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "READ: Parsing explanation",
+						"info": "This code gets the raw output from the InfluxDB node,\nand parses it to get the following output:\n\n[\n\t{\n\t\tindicatorId = I_IND_1,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t},\n\t{\n\t\tindicatorId = I_IND_2,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t}\n]\n*/",
+						"x": 450,
+						"y": 620,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "3721c516.23799a",
+						"type": "savvy",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"cncmanufacturer": "",
+						"endpoint": "172.16.33.202",
+						"returntype": "utf-8",
+						"apitype": "local",
+						"port": "8006",
+						"key": "",
+						"secret": "",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "details-indicator",
+						"x": 430,
+						"y": 480,
+						"wires": [
+							[
+								"1739c7cb.b94798"
+							]
+						]
+					},
+					{
+						"id": "8ace18d8.1a717",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Manage InfluxDB reponse variable",
+						"func": "// Set initial value as null\nmsg.influxDBResponses = null;\n\n// Get response from the proper path from the InfluxDB node\nvar influxDBResponse = msg.payload['results'][0]['series'];\n\n// If it's defined, set the variable\nif (typeof influxDBResponse !== 'undefined')\n{\n    // Set the InfluxDB response on the proper msg path\n    msg.influxDBResponse = influxDBResponse;\n} \nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 480,
+						"y": 360,
+						"wires": [
+							[
+								"3721c516.23799a"
+							]
+						]
+					},
+					{
+						"id": "688c12bf.10ae4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "InfluxDB query format",
+						"info": "The InfluxDB query has the following form:\n\nSELECT\n    *\nFROM\n    I_CNK_X1Z8SG_BT67AW,I_CNK_X1Z8SG_LPTD3K\nWHERE\n    time > '2018-07-17T07:10:00.000Z'\n    AND\n    time < '2018-07-17T07:15:00.000Z'\n    \n    \n",
+						"x": 440,
+						"y": 80,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "b682e12c.b9d188",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"fcfdcb1c.53ca18"
+						],
+						"x": 675,
+						"y": 300,
+						"wires": [
+
+						]
+					}
+				]
+			},
+			"Testing_Output_Data": [{
+					"method_id": "GetHistoricalData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetStreamingData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetIndicatorsData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				}
+			]
+		},
+		"DATA_MANAGEMENT": [{
+				"method_id": "GetHistoricalData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_2",
+							"description": "Throughput 2",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 2,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetStreamingData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "timeliness_065",
+							"description": "Timeliness 0.65",
+							"type": "Timeliness",
+							"properties": {
+								"timeliness": {
+									"maximum": 0.65,
+									"unit": "NONE"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetIndicatorsData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_8099",
+							"description": "Availability 80-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 80,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_16",
+							"description": "Throughput 1.6",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 1.6,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			}
+		],
+		"ABSTRACT_PROPERTIES": {},
+		"COOKBOOK_APPENDIX": {},
+		"EXPOSED_API": {
+			"openapi": "3.0.0",
+			"info": {
+				"title": "IDEKO VDC",
+				"description": "VDC methods for the IDEKO use case",
+				"version": "0.0.1"
+			},
+			"paths": {
+				"/GetHistoricalData": {
+					"get": {
+						"summary": "Returns the corresponding data values for to the given parameters.",
+						"operationId": "GetHistoricalData",
+						"parameters": [{
+								"in": "query",
+								"name": "location",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "machine",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "group",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "indicator",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetHistoricalDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetStreamingData": {
+					"get": {
+						"summary": "Returns the streaming data for the parameters given.",
+						"operationId": "GetStreamingData",
+						"parameters": [{
+							"in": "query",
+							"name": "machines",
+							"required": true,
+							"schema": {
+								"type": "string"
+							}
+						}],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetStreamingDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetIndicatorsData": {
+					"get": {
+						"summary": "Returns the data and the human names for the given indicatorIdList of the given date range. The from and to values must be timestamps in milliseconds. Indicators values are gathered from the InfluxDB deployed in the smart-box. The human names are gathered from the in-box API.",
+						"operationId": "GetIndicatorsData",
+						"parameters": [{
+								"in": "query",
+								"name": "indicators",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetIndicatorsDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				}
+			},
+			"components": {
+				"schemas": {
+					"ErrorResponse": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "integer"
+							},
+							"code": {
+								"type": "integer"
+							},
+							"message": {
+								"type": "string"
+							},
+							"link": {
+								"type": "string"
+							},
+							"developerMessage": {
+								"type": "string"
+							}
+						}
+					},
+					"GetHistoricalDataResponse": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
+					},
+					"GetStreamingDataResponse": {
+						"type": "object",
+						"properties": {
+							"machine": {
+								"type": "string"
+							},
+							"group": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"additionalProperties": {
+											"type": "integer"
+										},
+										"timestamp": {
+											"type": "object"
+										}
+									}
+								}
+							}
+						}
+					},
+					"GetIndicatorsDataResponse": {
+						"type": "object",
+						"properties": {
+							"indicatorId": {
+								"type": "string"
+							},
+							"indicatorName": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"timestamp": {
+											"type": "string"
+										},
+										"value": {
+											"oneOf": [{
+													"type": "number"
+												},
+												{
+													"type": "string"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	,
+	"methodNames": [
+		"GetIndicatorsData"
+	]
+},
+{
+	"blueprint": {
+		"INTERNAL_STRUCTURE": {
+			"Overview": {
+				"name": "DITAS Machine 3 - Soraluce FS",
+				"description": "VDC blueprint for the 'DITAS Machines 3 - Soraluce FS' at Ideko",
+				"tags": [{
+						"method_id": "GetHistoricalData",
+						"tags": ["machine", "batch", "data", "json"]
+					},
+					{
+						"method_id": "GetStreamingData",
+						"tags": ["machine", "stream", "streaming", "data", "json"]
+					},
+					{
+						"method_id": "GetIndicatorsData",
+						"tags": ["indicators", "batch", "data", "json"]
+					}
+				]
+			},
+			"Data_Sources": [{
+					"id": "MachineTimeseriesDatabase",
+					"description": "Machine timeseries database (InfluxDB) located in the smart box of the machine",
+					"location": "edge",
+					"class": "time-series database",
+					"type": "InfluxDB",
+					"parameters": {
+						"ip": "172.16.33.202",
+						"port": "****",
+						"user": "****",
+						"password": "****",
+						"database": "****"
+					},
+					"schema": {
+						"TO-DO": "[Borja - To define the schema of the database. Check Javi Escaqrtin's CSV data examples to devise the future influxDB structure]"
+					}
+				},
+				{
+					"id": "InboxStreamingAPI",
+					"description": "In-box streaming API served directly from the interoperability module on the smart box",
+					"location": "edge",
+					"class": "data stream",
+					"type": "rest",
+					"parameters": {
+						"url": "https://172.16.33.202",
+						"port": "****"
+					}
+				},
+				{
+					"id": "SavvyCloudAPI",
+					"description": "Savvy cloud API with both the streaming and REST endpoints",
+					"location": "cloud",
+					"class": "api",
+					"type": "rest",
+					"parameters": {
+						"readme": "The following key / secret are the credentials used in the Node-RED flow.",
+						"api-key": "****",
+						"api-secret": "****"
+					}
+				}
+			],
+			"Flow": {
+				"platform": "Node-RED",
+				"source_code": [{
+						"id": "92549871.7749d8",
+						"type": "tab",
+						"label": "GetHistoricalData",
+						"disabled": false,
+						"info": "Returns the corresponding data values for to the given parameters."
+					},
+					{
+						"id": "acf59602.264d18",
+						"type": "tab",
+						"label": "GetStreamingData",
+						"disabled": false,
+						"info": "Returns the streaming data for the parameters given."
+					},
+					{
+						"id": "ffbc8cbb.da735",
+						"type": "tab",
+						"label": "GetIndicatorsData",
+						"disabled": false,
+						"info": ""
+					},
+					{
+						"id": "bf7664dd.0fec48",
+						"type": "tab",
+						"label": "CAF",
+						"disabled": false,
+						"info": "Entry point for the CAF"
+					},
+					{
+						"id": "2964b3f3.ee5bfc",
+						"type": "MySQLdatabase",
+						"z": "",
+						"host": "",
+						"port": "3306",
+						"db": "ditas_dummy_example",
+						"tz": ""
+					},
+					{
+						"id": "12c3fc1d.6313a4",
+						"type": "CassandraDatabase",
+						"z": "",
+						"hosts": "",
+						"port": "9042",
+						"keyspace": "ditas"
+					},
+					{
+						"id": "ebc731b5.eb8a98",
+						"type": "influxdb",
+						"z": "",
+						"hostname": "172.16.33.202",
+						"port": "8086",
+						"protocol": "http",
+						"database": "defaultdb",
+						"name": "InfluxDB (Smart Box 16 - DITAS Machine 4)",
+						"usetls": false,
+						"tls": ""
+					},
+					{
+						"id": "d9278a08.745788",
+						"type": "savvy",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "data",
+						"x": 770,
+						"y": 300,
+						"wires": [
+							[
+								"634b5a7f.61fa34"
+							]
+						]
+					},
+					{
+						"id": "634b5a7f.61fa34",
+						"type": "http response",
+						"z": "92549871.7749d8",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 990,
+						"y": 320,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bb795321.eeab8",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory\n    msg.locationId = queryParams.location;\n    msg.machineId = queryParams.machine;\n    \n    // Mandatory timestamps\n    msg.fromTs = queryParams.from;\n    msg.toTs = queryParams.to;\n    \n    // Optional\n    msg.groupId = undefined;\n    msg.indicatorId = undefined;\n    if (queryParams.group !== undefined)\n        msg.groupId = queryParams.group\n    if (queryParams.indicator !== undefined)\n        msg.indicatorId = queryParams.indicator\n    \n    return msg;\n}",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 510,
+						"y": 200,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "90399ffc.215b4",
+						"type": "savvy",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"cncmanufacturer": "",
+						"endpoint": "api-ideko.savvyds.com",
+						"returntype": "utf-8",
+						"apitype": "cloud",
+						"port": "8017",
+						"key": "****",
+						"secret": "****",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "stream",
+						"x": 730,
+						"y": 180,
+						"wires": [
+							[
+								"3fb02483.73346c"
+							]
+						]
+					},
+					{
+						"id": "3fb02483.73346c",
+						"type": "http response",
+						"z": "acf59602.264d18",
+						"name": "http",
+						"statusCode": "",
+						"streamResponse": "1",
+						"headers": {
+							"Transfer-Encoding": "chunked",
+							"Content-type": "text/json; charset=UTF-8"
+						},
+						"x": 930,
+						"y": 180,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "7dcef958.7befd8",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Add config params to msg",
+						"func": "// First of all, if the node is clossing the connection, ndo nothing\nif (msg.connectionClosed !== true)\n{\n    // We force the parameters into the query as there \n    //is no way to use named AND OPTIONAL parameters\n    var queryParams = msg.req.query;\n    \n    // Mandatory - can be comma separated list of machines\n    msg.machineId = queryParams.machines;\n    \n    return msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 430,
+						"y": 100,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "bbb156bf.cae418",
+						"type": "function",
+						"z": "acf59602.264d18",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"90399ffc.215b4"
+							]
+						]
+					},
+					{
+						"id": "48c6bb17.28ef04",
+						"type": "function",
+						"z": "92549871.7749d8",
+						"name": "Stream stopper",
+						"func": "// Sens s STOP signal to the Savy node if the \n// HTTP In node indicates that the connection\n// was closed\nif (msg.connectionClosed === true)\n{\n    msg.stopRequest = true;\n    return msg;\n}\n// Creo que si la propiedad connectionClosed no es \n// True no se manda nada por lo que el flujo no llega \n// al siguiente mensage",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 500,
+						"y": 360,
+						"wires": [
+							[
+								"d9278a08.745788"
+							]
+						]
+					},
+					{
+						"id": "6c391f38.b49a",
+						"type": "http in",
+						"z": "bf7664dd.0fec48",
+						"name": "CAF",
+						"url": "/caf/:exposed_method",
+						"method": "get",
+						"upload": false,
+						"swaggerDoc": "",
+						"x": 170,
+						"y": 260,
+						"wires": [
+							[
+								"a34c3ab7.2b2648"
+							]
+						]
+					},
+					{
+						"id": "c6354a5f.9a27b8",
+						"type": "link in",
+						"z": "acf59602.264d18",
+						"name": "GetStreamingData",
+						"links": [
+							"483696d9.5a2a18",
+							"d07c247f.32b3a8"
+						],
+						"x": 195,
+						"y": 180,
+						"wires": [
+							[
+								"7dcef958.7befd8",
+								"bbb156bf.cae418"
+							]
+						]
+					},
+					{
+						"id": "a34c3ab7.2b2648",
+						"type": "switch",
+						"z": "bf7664dd.0fec48",
+						"name": "method",
+						"property": "req.params.exposed_method",
+						"propertyType": "msg",
+						"rules": [{
+								"t": "eq",
+								"v": "GetHistoricalData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetStreamingData",
+								"vt": "str"
+							},
+							{
+								"t": "eq",
+								"v": "GetIndicatorsData",
+								"vt": "str"
+							},
+							{
+								"t": "else"
+							}
+						],
+						"checkall": "true",
+						"repair": false,
+						"outputs": 4,
+						"x": 400,
+						"y": 260,
+						"wires": [
+							[
+								"78601f23.39967"
+							],
+							[
+								"483696d9.5a2a18"
+							],
+							[
+								"b682e12c.b9d188"
+							],
+							[
+								"bfc0d085.f305"
+							]
+						]
+					},
+					{
+						"id": "78601f23.39967",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetHistoricalData",
+						"links": [
+							"f09145e4.b52c08"
+						],
+						"x": 675,
+						"y": 220,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "483696d9.5a2a18",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"c6354a5f.9a27b8"
+						],
+						"x": 675,
+						"y": 259,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "bfc0d085.f305",
+						"type": "function",
+						"z": "bf7664dd.0fec48",
+						"name": "method not exists",
+						"func": "msg.payload = \"The exposed doesn't exist: \" + msg.req.params.exposed_method;\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 630,
+						"y": 400,
+						"wires": [
+							[
+								"f5884c46.ee402"
+							]
+						]
+					},
+					{
+						"id": "f5884c46.ee402",
+						"type": "http response",
+						"z": "bf7664dd.0fec48",
+						"name": "",
+						"statusCode": "",
+						"streamResponse": "0",
+						"headers": {
+
+						},
+						"x": 830,
+						"y": 400,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "f09145e4.b52c08",
+						"type": "link in",
+						"z": "92549871.7749d8",
+						"name": "GetHistoricalData",
+						"links": [
+							"78601f23.39967"
+						],
+						"x": 275,
+						"y": 280,
+						"wires": [
+							[
+								"bb795321.eeab8",
+								"48c6bb17.28ef04"
+							]
+						]
+					},
+					{
+						"id": "49c76178.372888",
+						"type": "http response",
+						"z": "ffbc8cbb.da735",
+						"name": "",
+						"statusCode": "",
+						"headers": {
+
+						},
+						"x": 770,
+						"y": 580,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "fcfdcb1c.53ca18",
+						"type": "link in",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"links": [
+							"b682e12c.b9d188"
+						],
+						"x": 195,
+						"y": 120,
+						"wires": [
+							[
+								"f26e6103.2732a"
+							]
+						]
+					},
+					{
+						"id": "f26e6103.2732a",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Generate InfluxDB query",
+						"func": "// First of all, if the node is clossing the connection, do nothing\nif (msg.connectionClosed !== true)\n{\n    // Get the variables from the query\n    var queryParams = msg.req.query;\n    \n    // Get timestamps and convert them to ISO string (mandatory for InfluxDB)\n    var fromTs = (new Date(Number(queryParams.from))).toISOString();\n    var toTs = (new Date(Number(queryParams.to))).toISOString();\n\n    // Get indicator list\n    var indicatorList = queryParams.indicators;\n\n    // Set the InfluxDB query\n    msg.query = \"SELECT * FROM \" + indicatorList + \" WHERE time > '\" + fromTs + \"' AND time < '\" + toTs + \"'\";\n\t\n\treturn msg;\n}\n\n",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 120,
+						"wires": [
+							[
+								"859e9e3c.f07058"
+							]
+						]
+					},
+					{
+						"id": "859e9e3c.f07058",
+						"type": "influxdb in",
+						"z": "ffbc8cbb.da735",
+						"influxdb": "ebc731b5.eb8a98",
+						"name": "Query InfluxDB",
+						"query": "",
+						"rawOutput": true,
+						"precision": "",
+						"retentionPolicy": "",
+						"x": 420,
+						"y": 240,
+						"wires": [
+							[
+								"8ace18d8.1a717"
+							]
+						]
+					},
+					{
+						"id": "1739c7cb.b94798",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Parse InfluxDB response",
+						"func": "// See the comment node for a large comment for this function.\n\n// Get InfluxDB response object\ninfluxDBResponse = msg.influxDBResponse;\n\n// Get variable list names from the Savvy node and parse them to a JSON object\nvariableList = msg.payload;\nindicatorsJSONObj = JSON.parse(variableList)['indicators'];\n\n// If the influxDBResponse is not empty, keep going\nif (typeof influxDBResponse !== 'undefined')\n{\n\n    // Define final array\n    var outputArray = []\n    \n    // For each line of the response, create the proper structure\n    influxDBResponse.forEach(function(element)\n    {\n        \n        // One for for each indicator id\n        var itemObject = new Object();\n        \n        // Be careful, InfluxDB returns the indicatorId on the \".name\" path\n        // This is because the name of the measurement is the indicatorId itself\n        itemObject.indicatorId = element.name;\n        itemObject.indicatorName = getIndicatorName(itemObject.indicatorId); // Get real indicator name\n        \n        // Generate empty data array\n        var dataArray = []\n    \n        // Loop the data, and generate the proper structure\n        element.values.forEach(function(innerData)\n        {\n            var dataObject = new Object();\n            dataObject.timestamp = innerData[0]; // Timestamp is always on pos 0\n            dataObject.value = innerData[2]; // Value is always on pos 2\n            dataArray.push(dataObject)\n        });\n        itemObject.data = dataArray;\n    \n        // Push the entire object to the output array\n        outputArray.push(itemObject)\n        \n    });\n    \n    // Set payload to the output array\n    msg.payload = outputArray;\n}\nelse\n{\n    // TODO: Still to be defined\n    /*\n    responseArray = [];\n    var responseObj = new Object();\n    responseObj.status = \"404\";\n    responseObj.message = \"No data for requested parameters\";\n    */\n    msg.payload = \"No data for requested parameters\";\n}\n\n/*\n* From a given IndicatorId, return its real name \n*\n* @param string - indicatorId - Id of the indicator\n* @return string - Name of the indicator\n*/\nfunction getIndicatorName(indicatorId)\n{\n    var i;\n    for (i = 0; i < indicatorsJSONObj.length; i++)\n    {\n        if (indicatorsJSONObj[i]['indicatorId'] === indicatorId)\n        {\n            return indicatorsJSONObj[i]['indicatorName'];\n        } \n    }\n}\nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 450,
+						"y": 580,
+						"wires": [
+							[
+								"49c76178.372888"
+							]
+						]
+					},
+					{
+						"id": "34c5f4ac.28fc4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "READ: Parsing explanation",
+						"info": "This code gets the raw output from the InfluxDB node,\nand parses it to get the following output:\n\n[\n\t{\n\t\tindicatorId = I_IND_1,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t},\n\t{\n\t\tindicatorId = I_IND_2,\n\t\tdata = [\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\ttimestamp = XXX\n\t\t\t\t\t\tvalue = XX\n\t\t\t\t\t}\n\t\t]\n\t}\n]\n*/",
+						"x": 450,
+						"y": 620,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "3721c516.23799a",
+						"type": "savvy",
+						"z": "ffbc8cbb.da735",
+						"name": "GetIndicatorsData",
+						"cncmanufacturer": "",
+						"endpoint": "172.16.33.202",
+						"returntype": "utf-8",
+						"apitype": "local",
+						"port": "8006",
+						"key": "",
+						"secret": "",
+						"locationId": "",
+						"groupId": "",
+						"machineId": "",
+						"indicatorId": "",
+						"fromTs": "",
+						"toTs": "",
+						"target": "details-indicator",
+						"x": 430,
+						"y": 480,
+						"wires": [
+							[
+								"1739c7cb.b94798"
+							]
+						]
+					},
+					{
+						"id": "8ace18d8.1a717",
+						"type": "function",
+						"z": "ffbc8cbb.da735",
+						"name": "Manage InfluxDB reponse variable",
+						"func": "// Set initial value as null\nmsg.influxDBResponses = null;\n\n// Get response from the proper path from the InfluxDB node\nvar influxDBResponse = msg.payload['results'][0]['series'];\n\n// If it's defined, set the variable\nif (typeof influxDBResponse !== 'undefined')\n{\n    // Set the InfluxDB response on the proper msg path\n    msg.influxDBResponse = influxDBResponse;\n} \nreturn msg;",
+						"outputs": 1,
+						"noerr": 0,
+						"x": 480,
+						"y": 360,
+						"wires": [
+							[
+								"3721c516.23799a"
+							]
+						]
+					},
+					{
+						"id": "688c12bf.10ae4c",
+						"type": "comment",
+						"z": "ffbc8cbb.da735",
+						"name": "InfluxDB query format",
+						"info": "The InfluxDB query has the following form:\n\nSELECT\n    *\nFROM\n    I_CNK_X1Z8SG_BT67AW,I_CNK_X1Z8SG_LPTD3K\nWHERE\n    time > '2018-07-17T07:10:00.000Z'\n    AND\n    time < '2018-07-17T07:15:00.000Z'\n    \n    \n",
+						"x": 440,
+						"y": 80,
+						"wires": [
+
+						]
+					},
+					{
+						"id": "b682e12c.b9d188",
+						"type": "link out",
+						"z": "bf7664dd.0fec48",
+						"name": "GetStreamingData",
+						"links": [
+							"fcfdcb1c.53ca18"
+						],
+						"x": 675,
+						"y": 300,
+						"wires": [
+
+						]
+					}
+				]
+			},
+			"Testing_Output_Data": [{
+					"method_id": "GetHistoricalData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetStreamingData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				},
+				{
+					"method_id": "GetIndicatorsData",
+					"zip_data": "TO-DO URL to a zip file with data samples"
+				}
+			]
+		},
+		"DATA_MANAGEMENT": [{
+				"method_id": "GetHistoricalData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_2",
+							"description": "Throughput 2",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 2,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_07",
+							"description": "Precision 0.7",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.7,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetStreamingData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_9099",
+							"description": "Availability 90-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 90,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_70",
+							"description": "Process completeness 70",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 70,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "timeliness_065",
+							"description": "Timeliness 0.65",
+							"type": "Timeliness",
+							"properties": {
+								"timeliness": {
+									"maximum": 0.65,
+									"unit": "NONE"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			},
+			{
+				"method_id": "GetIndicatorsData",
+				"attributes": {
+					"dataUtility": [{
+							"id": "availability_8099",
+							"description": "Availability 80-99",
+							"type": "Availability",
+							"properties": {
+								"availability": {
+									"unit": "percentage",
+									"minimum": 80,
+									"maximum": 99
+								}
+							}
+						},
+						{
+							"id": "processCompleteness_80",
+							"description": "Process completeness 80",
+							"type": "Process completeness",
+							"properties": {
+								"completeness": {
+									"minimum": 80,
+									"unit": "percentage"
+								}
+							}
+						},
+						{
+							"id": "throughput_12",
+							"description": "Throughput 1.2",
+							"type": "Throughput",
+							"properties": {
+								"throughput": {
+									"value": 1.2,
+									"unit": "MB/s"
+								}
+							}
+						},
+						{
+							"id": "precision_08",
+							"description": "Precision 0.8",
+							"type": "Precision",
+							"properties": {
+								"precision": {
+									"minimum": 0.8,
+									"unit": "none"
+								}
+							}
+						},
+						{
+							"id": "accuracy_09",
+							"description": "Accuracy 0.9",
+							"type": "Accuracy",
+							"properties": {
+								"accuracy": {
+									"minimum": 0.9,
+									"unit": "none"
+								}
+							}
+						}
+					],
+					"security": [],
+					"privacy": []
+				}
+			}
+		],
+		"ABSTRACT_PROPERTIES": {},
+		"COOKBOOK_APPENDIX": {},
+		"EXPOSED_API": {
+			"openapi": "3.0.0",
+			"info": {
+				"title": "IDEKO VDC",
+				"description": "VDC methods for the IDEKO use case",
+				"version": "0.0.1"
+			},
+			"paths": {
+				"/GetHistoricalData": {
+					"get": {
+						"summary": "Returns the corresponding data values for to the given parameters.",
+						"operationId": "GetHistoricalData",
+						"parameters": [{
+								"in": "query",
+								"name": "location",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "machine",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "group",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "indicator",
+								"required": false,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetHistoricalDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetStreamingData": {
+					"get": {
+						"summary": "Returns the streaming data for the parameters given.",
+						"operationId": "GetStreamingData",
+						"parameters": [{
+							"in": "query",
+							"name": "machines",
+							"required": true,
+							"schema": {
+								"type": "string"
+							}
+						}],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetStreamingDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				},
+				"/GetIndicatorsData": {
+					"get": {
+						"summary": "Returns the data and the human names for the given indicatorIdList of the given date range. The from and to values must be timestamps in milliseconds. Indicators values are gathered from the InfluxDB deployed in the smart-box. The human names are gathered from the in-box API.",
+						"operationId": "GetIndicatorsData",
+						"parameters": [{
+								"in": "query",
+								"name": "indicators",
+								"required": true,
+								"schema": {
+									"type": "string"
+								}
+							},
+							{
+								"in": "query",
+								"name": "from",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							},
+							{
+								"in": "query",
+								"name": "to",
+								"required": true,
+								"schema": {
+									"type": "number"
+								}
+							}
+						],
+						"responses": {
+							"200": {
+								"description": "OK",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/GetIndicatorsDataResponse"
+										}
+									},
+									"application/octet-stream": {
+										"schema": {
+											"type": "string",
+											"format": "binary"
+										}
+									}
+								}
+							},
+							"default": {
+								"description": "Unexpected error",
+								"content": {
+									"application/json": {
+										"schema": {
+											"$ref": "#/components/schemas/ErrorResponse"
+										}
+									}
+								}
+							}
+						},
+						"x-data-sources": [
+							"SavvyCloudAPI"
+						]
+					}
+				}
+			},
+			"components": {
+				"schemas": {
+					"ErrorResponse": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "integer"
+							},
+							"code": {
+								"type": "integer"
+							},
+							"message": {
+								"type": "string"
+							},
+							"link": {
+								"type": "string"
+							},
+							"developerMessage": {
+								"type": "string"
+							}
+						}
+					},
+					"GetHistoricalDataResponse": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
+					},
+					"GetStreamingDataResponse": {
+						"type": "object",
+						"properties": {
+							"machine": {
+								"type": "string"
+							},
+							"group": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"additionalProperties": {
+											"type": "integer"
+										},
+										"timestamp": {
+											"type": "object"
+										}
+									}
+								}
+							}
+						}
+					},
+					"GetIndicatorsDataResponse": {
+						"type": "object",
+						"properties": {
+							"indicatorId": {
+								"type": "string"
+							},
+							"indicatorName": {
+								"type": "string"
+							},
+							"data": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"timestamp": {
+											"type": "string"
+										},
+										"value": {
+											"oneOf": [{
+													"type": "number"
+												},
+												{
+													"type": "string"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	,
+	"methodNames": [
+		"GetIndicatorsData"
+	]
+}
+]
