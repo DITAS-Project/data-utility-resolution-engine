@@ -1,5 +1,9 @@
 ﻿var exports = module.exports = {};
 
+var request = require('sync-request');
+
+const pse_module_url = "http://31.171.247.162:50008/filter";
+
 exports.compareDUAttributes = function compareDUAttributes(requirement, attribute, optimum) {
     //attribute fulfills requirement
     if (module.exports.assessDUAttributes(requirement, attribute, attribute) > 0) {
@@ -76,9 +80,10 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes, optimum
                     if (attributes[attribute].type === requirements[requirement].type) {
                         var tempScore = 0;
                         if (optimum === undefined) {
-                            //TODO invocare PSE TUB, al momento sempre vero
-                            tempScore = 1;
+                            //assess privacy and security
+                            tempScore = module.exports.invokePSE(requirements[requirement], attributes[attribute]);
                         } else {
+                            //assess data utility
                             //if the attributes were not fulfilled (or not found), also the whole goal is not
                             tempScore = module.exports.assessDUAttributes(requirements[requirement], attributes[attribute], optimum[requirements[requirement].id])
                         }
@@ -215,4 +220,48 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
     //no comparison is possible, binary decision
     return 1;
 }
+
+exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
+
+    var args = {
+        requirement: goalRequirement,
+        blueprintAttributes: [blueprintAttribute]
+    };
+
+    var res = request('POST', pse_module_url, {
+        json: args
+    });
+
+    var body = JSON.parse(res.body);
+    console.log("body is " + res.body)
+    console.log("data are " + body);
+    console.log("length is " + body.length)
+
+    if (body.length > 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+    /*
+    client.registerMethod("assessPS", pse_module_url, "POST");
+
+    var args = {
+        data: { requirement: goalRequirement, blueprintAttributes: [blueprintAttribute] },
+        headers: { "Content-Type": "application/json" }
+    };
+
+    var result = 0;
+
+    client.methods.assessPS(args, function (data, response) {
+        console.log("number of results is: " + data.length);
+        if (data.length > 0) {
+            result = 1;
+        }
+    }).then(result => {
+        console.log("returned result is: " + result);
+        return result;
+    }
+    );
+    */
+} 
 

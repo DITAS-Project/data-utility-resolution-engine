@@ -33,6 +33,7 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprints', function (req, res) {
+    console.log(req.body.applicationRequirements);
     var requirements = JSON.parse(req.body.applicationRequirements);
     var list = JSON.parse(req.body.candidates);
     var resultSet = [];
