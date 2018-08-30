@@ -33,9 +33,21 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprints', function (req, res) {
+    console.log(req.body);
+    return res.json(filter(req.body.applicationRequirements, req.body.candidates));
+});
+
+//alternative REST service (request sent as form data, for testing purposes)
+//input: application requirements, list of couples blueprint, method
+//output: list of tuples blueprint UUID, method, score, pruned requirements
+app.post('/api/filterBlueprintsAlt', function (req, res) {
     console.log(req.body.applicationRequirements);
     var requirements = JSON.parse(req.body.applicationRequirements);
     var list = JSON.parse(req.body.candidates);
+    return res.json(filter(requirements, list));
+})
+
+function filter(requirements, list) {
     var resultSet = [];
     //console.log(req);
     //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
@@ -72,7 +84,7 @@ app.post('/api/filterBlueprints', function (req, res) {
                     console.log(privacyScore);
 
                     var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
-                    
+
                     if (globalScore > 0) {
                         console.log("score great");
                         //prune requirements goal tree
@@ -101,8 +113,6 @@ app.post('/api/filterBlueprints', function (req, res) {
             }
         }
     }
-    return res.json(resultSet);
-})
-
-
+    return resultSet;
+};
 
