@@ -113,6 +113,14 @@ function filter(requirements, list) {
             }
         }
     }
-    return resultSet;
+    return resultSet.sort(compare);
+    //return resultSet;
 };
 
+function compare(a, b) {
+    if (a.score > b.score)
+        return -1;
+    if (a.score < b.score)
+        return 1;
+    return 0;
+}
