@@ -1,7 +1,23 @@
-/*
+/**
  * Data Utility Resolution Engine (DURE) module
  * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
-*/
+ *
+ * Copyright 2018 Politecnico di Milano
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * This is being developed for the DITAS Project: https://www.ditas-project.eu/
+ */
 
 var express = require('express');
 var app = express();
@@ -33,7 +49,6 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprints', function (req, res) {
-    console.log(req.body);
     return res.json(filter(req.body.applicationRequirements, req.body.candidates));
 });
 
@@ -41,7 +56,6 @@ app.post('/api/filterBlueprints', function (req, res) {
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprintsAlt', function (req, res) {
-    console.log(req.body.applicationRequirements);
     var requirements = JSON.parse(req.body.applicationRequirements);
     var list = JSON.parse(req.body.candidates);
     return res.json(filter(requirements, list));
@@ -49,25 +63,19 @@ app.post('/api/filterBlueprintsAlt', function (req, res) {
 
 function filter(requirements, list) {
     var resultSet = [];
-    //console.log(req);
     //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
 
     //identify best value for each attribute (considering all blueprints)
     var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
-    console.log(optimumDUValues);
-
+    
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
         //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
-        console.log(methodNames);
         var methods = blueprint.DATA_MANAGEMENT;
         for (var methodName in methodNames) {
-            console.log(methodNames[methodName]);
             for (var method in methods) {
-                console.log(methods[method].method_id);
                 if (methods[method].method_id === methodNames[methodName]) {
-                    console.log(optimumDUValues);
                     //compute data utility score
                     var dataUtilityScore = ranker.computeScore(requirements.attributes.dataUtility,
                         requirements.goalTrees.dataUtility, methods[method].attributes.dataUtility, optimumDUValues);
@@ -78,15 +86,10 @@ function filter(requirements, list) {
                     var privacyScore = ranker.computeScore(requirements.attributes.privacy,
                         requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                     //compute global score
-                    console.log("score ok");
-                    console.log(dataUtilityScore);
-                    console.log(securityScore);
-                    console.log(privacyScore);
-
+                
                     var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
 
                     if (globalScore > 0) {
-                        console.log("score great");
                         //prune requirements goal tree
                         var trees = {};
                         trees.method_id = methodNames[methodName];

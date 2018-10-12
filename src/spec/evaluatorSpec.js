@@ -1,4 +1,25 @@
-﻿var evaluator = require("../app/evaluator");
+﻿/*
+ * Data Utility Resolution Engine (DURE) module
+ * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
+ *
+ * Copyright 2018 Politecnico di Milano
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * This is being developed for the DITAS Project: https://www.ditas-project.eu/
+ */
+
+var evaluator = require("../app/evaluator");
 
 describe('evaluator module unit test -> ', function () {
     describe('assessProperty function tests -> ', function () {
@@ -18,8 +39,8 @@ describe('evaluator module unit test -> ', function () {
                 "unit":"enum",
                 "value":"RSA"
             }
-            expect(evaluator.assessProperty(goalProperty, blueprintPropertyTrue)).toBe(true);
-            expect(evaluator.assessProperty(goalProperty, blueprintPropertyFalse)).toBe(false);
+            expect(evaluator.assessProperty(goalProperty, blueprintPropertyTrue)).toBe(1);
+            expect(evaluator.assessProperty(goalProperty, blueprintPropertyFalse)).toBe(0);
         });
 
         it('checks for within range', function () {
@@ -61,10 +82,10 @@ describe('evaluator module unit test -> ', function () {
                 "unit": "second"
             };
             
-            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange)).toBe(true);
-            expect(evaluator.assessProperty(goalPropertyLower, blueprintPropertyLower)).toBe(true);
-            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper)).toBe(true);
-            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper2)).toBe(true);
+            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange)).toBe(1);
+            expect(evaluator.assessProperty(goalPropertyLower, blueprintPropertyLower)).toBe(1);
+            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper)).toBe(1);
+            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper2)).toBe(1);
         });
 
         it('checks for out of range', function () {
@@ -113,494 +134,68 @@ describe('evaluator module unit test -> ', function () {
                 "unit": "second"
             };
 
-            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange)).toBe(false);
-            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange2)).toBe(false);
-            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange3)).toBe(false);
-            expect(evaluator.assessProperty(goalPropertyLower, blueprintPropertyLower)).toBe(false);
-            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper)).toBe(false);
+            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange)).toBe(0);
+            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange2)).toBe(0);
+            expect(evaluator.assessProperty(goalPropertyRange, blueprintPropertyRange3)).toBe(0);
+            expect(evaluator.assessProperty(goalPropertyLower, blueprintPropertyLower)).toBe(0);
+            expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper)).toBe(0);
         });
     });
 
-    describe('assessMetric function tests -> ', function () {
-        it('metric with single property', function () {
-            var goalMetric = {
+    describe('assessDUAttributes function tests -> ', function () {
+        it('attribute with single property', function () {
+            var goalAttribute = {
                 "id": "1",
                 "name": "Availability 90-99",
                 "type": "Availability",
-                "properties": [
-                    {
-                        "name": "Availability",
+                "properties": {
+                    "Availability": {
                         "unit": "percentage",
                         "minimum": 90,
                         "maximum": 99
                     }
-                ]
+                }
             };
-            var blueprintMetric1 = {
+            var blueprintAttribute1 = {
                 "id": "1",
                 "name": "Availability 92-95",
                 "type": "Availability",
-                "properties": [
-                    {
-                        "name": "Availability",
+                "properties": {
+                    "Availability": {
                         "unit": "percentage",
                         "minimum": 92,
                         "maximum": 95
                     }
-                ]
+                }
             };
-            var blueprintMetric2 = {
+            var blueprintAttribute2 = {
                 "id": "1",
                 "name": "Availability 90-100",
                 "type": "Availability",
-                "properties": [
-                    {
-                        "name": "Availability",
+                "properties": {
+                    "Availability": {
                         "unit": "percentage",
                         "minimum": 90,
                         "maximum": 100
                     }
-                ]
+                }
             };
-            var blueprintMetric3 = {
+            var blueprintAttribute3 = {
                 "id": "1",
                 "name": "Availability 80-95",
                 "type": "Availability",
-                "properties": [
-                    {
-                        "name": "Availability",
+                "properties": {
+                    "Availability": {
                         "unit": "percentage",
                         "minimum": 80,
                         "maximum": 95
                     }
-                ]
+                }
             };
-            expect(evaluator.assessMetric(goalMetric, [blueprintMetric1, blueprintMetric2])).toBe(true);
-            expect(evaluator.assessMetric(goalMetric, [blueprintMetric1, blueprintMetric3])).toBe(true);
-            expect(evaluator.assessMetric(goalMetric, [blueprintMetric2, blueprintMetric3])).toBe(false);
+            expect(evaluator.assessDUAttributes(goalAttribute, blueprintAttribute1, blueprintAttribute1)).toBe(1);
+            expect(evaluator.assessDUAttributes(goalAttribute, blueprintAttribute2, blueprintAttribute2)).toBe(0);
+            expect(evaluator.assessDUAttributes(goalAttribute, blueprintAttribute3, blueprintAttribute3)).toBe(0);
         });
     });
 
-    describe('assessGoal function tests -> ', function () {
-        it('goals with single metric', function () {
-            var goalList = [
-                {
-                    "id": "1",
-                    "name": "Service available",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "1",
-                            "name": "Availability 95-99",
-                            "type": "Availability",
-                            "properties": [
-                                {
-                                    "name": "Availability",
-                                    "unit": "percentage",
-                                    "minimum": 95,
-                                    "maximum": 99
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "2",
-                    "name": "Fast data process",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "2",
-                            "name": "ResponseTime 1",
-                            "type": "ResponseTime",
-                            "properties": [
-                                {
-                                    "name": "ResponseTime",
-                                    "maximum": 1,
-                                    "unit": "second"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "3",
-                    "name": "Data volume",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "3",
-                            "name": "volume 10000",
-                            "type": "volume",
-                            "properties": [
-                                {
-                                    "name": "volume",
-                                    "value": "10000",
-                                    "unit": "tuple"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "4",
-                    "name": "Temporal validity",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "4",
-                            "name": "Timeliness 0.6",
-                            "type": "Timeliness",
-                            "properties": [
-                                {
-                                    "name": "Timeliness",
-                                    "maximum": 0.6,
-                                    "unit": "NONE"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "5",
-                    "name": "Amount of Data",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "5",
-                            "name": "Process completeness 90",
-                            "type": "Process completeness",
-                            "properties": [
-                                {
-                                    "name": "Process completeness",
-                                    "minimum": 90,
-                                    "unit": "percentage"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ];
-            var metrics = [
-                {
-                    "id": "1",
-                    "name": "Availability 95-99",
-                    "type": "Availability",
-                    "properties": [
-                        {
-                            "name": "Availability",
-                            "unit": "percentage",
-                            "minimum": 95,
-                            "maximum": 99
-                        }
-                    ]
-                },
-                {
-                    "id": "2",
-                    "name": "ResponseTime 1",
-                    "type": "ResponseTime",
-                    "properties": [
-                        {
-                            "name": "ResponseTime",
-                            "maximum": 1,
-                            "unit": "second"
-                        }
-                    ]
-                },
-                {
-                    "id": "3",
-                    "name": "volume 5000",
-                    "type": "volume",
-                    "properties": [
-                        {
-                            "name": "volume",
-                            "value": "5000",
-                            "unit": "tuple"
-                        }
-                    ]
-                },
-                {
-                    "id": "4",
-                    "name": "Timeliness 0.6",
-                    "type": "Timeliness",
-                    "properties": [
-                        {
-                            "name": "Timeliness",
-                            "maximum": 0.6,
-                            "unit": "NONE"
-                        }
-                    ]
-                },
-                {
-                    "id": "5",
-                    "name": "Process completeness 80",
-                    "type": "Process completeness",
-                    "properties": [
-                        {
-                            "name": "Process completeness",
-                            "minimum": 80,
-                            "unit": "percentage"
-                        }
-                    ]
-                }
-            ];
-            expect(evaluator.assessGoal(goalList, "undefinedGoal", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "1", metrics, [])).toBe(1);
-            expect(evaluator.assessGoal(goalList, "2", metrics, [])).toBe(1);
-            expect(evaluator.assessGoal(goalList, "3", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "4", metrics, [])).toBe(1);
-            expect(evaluator.assessGoal(goalList, "5", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "undefinedGoal", [], metrics)).toBe(0);
-            expect(evaluator.assessGoal(goalList, "1", [], metrics)).toBe(1);
-            expect(evaluator.assessGoal(goalList, "2", [], metrics)).toBe(1);
-            expect(evaluator.assessGoal(goalList, "3", [], metrics)).toBe(0);
-            expect(evaluator.assessGoal(goalList, "4", [], metrics)).toBe(1);
-            expect(evaluator.assessGoal(goalList, "5", [], metrics)).toBe(0);
-        });
-        it('goals with multiple metrics', function () {
-            var goalList = [
-                {
-                    "id": "1",
-                    "name": "Service available and fast data process",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "1",
-                            "name": "Availability 95-99",
-                            "type": "Availability",
-                            "properties": [
-                                {
-                                    "name": "Availability",
-                                    "unit": "percentage",
-                                    "minimum": 95,
-                                    "maximum": 99
-                                }
-                            ]
-                        },
-                        {
-                            "id": "2",
-                            "name": "ResponseTime 1",
-                            "type": "ResponseTime",
-                            "properties": [
-                                {
-                                    "name": "ResponseTime",
-                                    "maximum": 1,
-                                    "unit": "second"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "2",
-                    "name": "Fast data process and high data volume",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "1",
-                            "name": "ResponseTime 1",
-                            "type": "ResponseTime",
-                            "properties": [
-                                {
-                                    "name": "ResponseTime",
-                                    "maximum": 1,
-                                    "unit": "second"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "3",
-                            "name": "volume 10000",
-                            "type": "volume",
-                            "properties": [
-                                {
-                                    "name": "volume",
-                                    "value": "10000",
-                                    "unit": "tuple"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "3",
-                    "name": "Data volume and temporal validity",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "3",
-                            "name": "volume 10000",
-                            "type": "volume",
-                            "properties": [
-                                {
-                                    "name": "volume",
-                                    "value": "10000",
-                                    "unit": "tuple"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "4",
-                            "name": "Timeliness 0.6",
-                            "type": "Timeliness",
-                            "properties": [
-                                {
-                                    "name": "Timeliness",
-                                    "maximum": 0.6,
-                                    "unit": "NONE"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "4",
-                    "name": "Temporal validity and fast data process",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "1",
-                            "name": "ResponseTime 1",
-                            "type": "ResponseTime",
-                            "properties": [
-                                {
-                                    "name": "ResponseTime",
-                                    "maximum": 1,
-                                    "unit": "second"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "4",
-                            "name": "Timeliness 0.6",
-                            "type": "Timeliness",
-                            "properties": [
-                                {
-                                    "name": "Timeliness",
-                                    "maximum": 0.6,
-                                    "unit": "NONE"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "5",
-                    "name": "Amount of Data and temporal validity",
-                    "weight": 1,
-                    "metrics":
-                    [
-                        {
-                            "id": "1",
-                            "name": "ResponseTime 1",
-                            "type": "ResponseTime",
-                            "properties": [
-                                {
-                                    "name": "ResponseTime",
-                                    "maximum": 1,
-                                    "unit": "second"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "5",
-                            "name": "Process completeness 90",
-                            "type": "Process completeness",
-                            "properties": [
-                                {
-                                    "name": "Process completeness",
-                                    "minimum": 90,
-                                    "unit": "percentage"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ];
-            var metrics = [
-                {
-                    "id": "1",
-                    "name": "Availability 95-99",
-                    "type": "Availability",
-                    "properties": [
-                        {
-                            "name": "Availability",
-                            "unit": "percentage",
-                            "minimum": 95,
-                            "maximum": 99
-                        }
-                    ]
-                },
-                {
-                    "id": "2",
-                    "name": "ResponseTime 1",
-                    "type": "ResponseTime",
-                    "properties": [
-                        {
-                            "name": "ResponseTime",
-                            "maximum": 1,
-                            "unit": "second"
-                        }
-                    ]
-                },
-                {
-                    "id": "3",
-                    "name": "volume 5000",
-                    "type": "volume",
-                    "properties": [
-                        {
-                            "name": "volume",
-                            "value": "5000",
-                            "unit": "tuple"
-                        }
-                    ]
-                },
-                {
-                    "id": "4",
-                    "name": "Timeliness 0.6",
-                    "type": "Timeliness",
-                    "properties": [
-                        {
-                            "name": "Timeliness",
-                            "maximum": 0.6,
-                            "unit": "NONE"
-                        }
-                    ]
-                },
-                {
-                    "id": "5",
-                    "name": "Process completeness 80",
-                    "type": "Process completeness",
-                    "properties": [
-                        {
-                            "name": "Process completeness",
-                            "minimum": 80,
-                            "unit": "percentage"
-                        }
-                    ]
-                }
-            ];
-            expect(evaluator.assessGoal(goalList, "undefinedGoal", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "1", metrics, [])).toBe(1);
-            expect(evaluator.assessGoal(goalList, "2", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "3", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "4", metrics, [])).toBe(1);
-            expect(evaluator.assessGoal(goalList, "5", metrics, [])).toBe(0);
-            expect(evaluator.assessGoal(goalList, "undefinedGoal", [], metrics)).toBe(0);
-            expect(evaluator.assessGoal(goalList, "1", [], metrics)).toBe(1);
-            expect(evaluator.assessGoal(goalList, "2", [], metrics)).toBe(0);
-            expect(evaluator.assessGoal(goalList, "3", [], metrics)).toBe(0);
-            expect(evaluator.assessGoal(goalList, "4", [], metrics)).toBe(1);
-            expect(evaluator.assessGoal(goalList, "5", [], metrics)).toBe(0);
-        });
-    });
 });

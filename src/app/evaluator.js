@@ -1,4 +1,25 @@
-﻿var exports = module.exports = {};
+﻿/**
+ * Data Utility Resolution Engine (DURE) module
+ * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
+ *
+ * Copyright 2018 Politecnico di Milano
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * This is being developed for the DITAS Project: https://www.ditas-project.eu/
+ */
+
+var exports = module.exports = {};
 
 var request = require('sync-request');
 
@@ -71,7 +92,6 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes, optimum
     var goalScore = 1;
     for (var goalReq in goal.attributes) {
         var reqScore = 0;
-        console.log("goal score is " + goalScore);
         //look for a requirement whose name is identical to goalReq
         for (var requirement in requirements) {
             if (requirements[requirement].id === goal.attributes[goalReq]) {
@@ -90,7 +110,6 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes, optimum
                         if (tempScore > reqScore) {
                             reqScore = tempScore;
                         }
-                        console.log("req score is now " + reqScore);
                     }
                 }
             }
@@ -101,8 +120,6 @@ exports.assessGoal = function assessGoal(requirements, goal, attributes, optimum
             goalScore = goalScore * reqScore;
         }
     }
-    console.log("here we are");
-    console.log("goal score is " + goalScore);
     //if we reached the end of the cycle, then the goal is fulfilled
     //thus, return the weight
     if (goal.weight !== undefined) {
@@ -118,14 +135,12 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
         // a property exists
         if (blueprintAttribute.properties[requirementProperty] !== undefined && optimumAttribute !== undefined) {
             //compute score
-            console.log(requirementProperty);
             score = score * module.exports.assessProperty(goalRequirement.properties[requirementProperty], blueprintAttribute.properties[requirementProperty], optimumAttribute.properties[requirementProperty])
         } else {
             // property is missing, attribute is not fulfilled
             return 0;
         }        
     }
-    console.log(score);
     return score;
 }
 
@@ -242,26 +257,6 @@ exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
     } else {
         return 0;
     }
-    /*
-    client.registerMethod("assessPS", pse_module_url, "POST");
-
-    var args = {
-        data: { requirement: goalRequirement, blueprintAttributes: [blueprintAttribute] },
-        headers: { "Content-Type": "application/json" }
-    };
-
-    var result = 0;
-
-    client.methods.assessPS(args, function (data, response) {
-        console.log("number of results is: " + data.length);
-        if (data.length > 0) {
-            result = 1;
-        }
-    }).then(result => {
-        console.log("returned result is: " + result);
-        return result;
-    }
-    );
-    */
+    
 } 
 
