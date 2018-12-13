@@ -9,5 +9,5 @@ ssh -i /opt/keypairs/ditas-testbed-keypair.pem cloudsigma@31.171.247.162 << 'END
 # || true - "docker stop" failt with exit status 1 if image doen't exists, what makes the Pipeline fail. the "|| true" forces the command to exit with 0.
 sudo docker rm -f data-utility-resolution-engine || true
 sudo docker pull ditas/data-utility-resolution-engine:latest
-sudo docker run -p 50001:8080 -d --name data-utility-resolution-engine ditas/data-utility-resolution-engine:latest
+sudo docker run -p 50001:8080 --restart unless-stopped -d --name data-utility-resolution-engine ditas/data-utility-resolution-engine:latest
 ENDSSH
