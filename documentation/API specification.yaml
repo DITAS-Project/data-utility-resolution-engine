@@ -11,7 +11,7 @@ basePath: "/"
 schemes:
 - "http"
 paths:
-  /filterBlueprints:
+  /api/filterBlueprints:
     post:
       summary: "Ranks and filters abstract blueprints based on application requirements"
       description: "The only API of this method filters a list of blueprints (input) that are complaint with the application requirements (input), and ranks them."

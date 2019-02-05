@@ -22,8 +22,9 @@
 var exports = module.exports = {};
 
 var request = require('sync-request');
+var config = require('./config.json');
 
-const pse_module_url = "http://31.171.247.162:50008/filter";
+var pse_module_url = config.PSEEndpoint; //"http://31.171.247.162:50008/filter";
 
 exports.compareDUAttributes = function compareDUAttributes(requirement, attribute, optimum) {
     //attribute fulfills requirement

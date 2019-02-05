@@ -38,7 +38,7 @@ pipeline {
 				echo "Done "
 			}		
 		}
-		stage('Image deploy') {
+		stage('Deployment in Staging') {
 			agent any
 			options {
                 // Don't need to checkout Git again
@@ -46,7 +46,13 @@ pipeline {
             }
 			steps {
 				// Deploy to Staging environment calling the deployment script
-				sh './jenkins/deploy-staging.sh'
+				sh './jenkins/deploy/deploy-staging.sh'
+			}
+		}
+		stage('Dredd API validation') {
+			agent any
+			steps {
+				sh './jenkins/dredd/run-api-test.sh'
 			}
 		}
 	}

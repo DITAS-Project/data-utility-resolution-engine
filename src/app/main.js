@@ -25,17 +25,20 @@ app.use(express.static(__dirname));
 var bodyParser = require('body-parser');
 var ranker = require("./ranker");
 var treePruner = require("./treePruner");
+var config = require('./config.json');
 
 var port = 8080;
-if(process.argv.length > 2) {
-	//HTTP port can be specified as application parameter. Otherwise, port 8080 is used.
-	var inputPort = process.argv[2];
-	if(inputPort > 8000 && inputPort < 65536){
-		port = inputPort;
-	}
-	else {
-		console.log("Invalid port value, default 8080 used instead.");
-	}
+if (process.argv.length > 2) {
+    //HTTP port can be specified as application parameter. Otherwise, port 8080 is used.
+    var inputPort = process.argv[2];
+    if (inputPort > 8000 && inputPort < 65536) {
+        port = inputPort;
+    }
+    else {
+        console.log("Invalid port value, default 8080 used instead.");
+    }
+} else {
+    port = config.Port;
 }
 
 var server = app.listen(port, function () {
