@@ -67,10 +67,10 @@ app.post('/api/filterBlueprintsAlt', function (req, res) {
 function filter(requirements, list) {
     var resultSet = [];
     //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
-
-    //identify best value for each attribute (considering all blueprints)
-    var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
-    
+	if(requirements!=undefined) {
+		//identify best value for each attribute (considering all blueprints)
+		var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
+	}
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
