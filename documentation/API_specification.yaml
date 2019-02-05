@@ -37,6 +37,7 @@ paths:
 definitions:
   applicationRequirements:
     description: "JSON document conforming to application requirements definitions as in https://github.com/DITAS-Project/ApplicationRequirement"
+    type: "object"
     example: 
       applicationType: Other
       functionalRequirements:
@@ -161,6 +162,7 @@ definitions:
 
   blueprint:
     description: "JSON document conforming to abstract blueprint definitions as in https://github.com/DITAS-Project/blueprint"   
+    type: "object"
     example: 
       INTERNAL_STRUCTURE:
         Overview:
@@ -865,8 +867,8 @@ definitions:
       methodNames:
         type: "array"
         items:
-            type: "string"
-            example: "getAllValuesForBloodTestComponent"
+          type: "string"
+          example: "getAllValuesForBloodTestComponent"
            
           
   input:
