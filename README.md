@@ -22,7 +22,7 @@ Copyright 2018 Politecnico di Milano
 	  * method names: list of methods exposed by the candidate blueprint that meet the functional requirements
   
 ## API definition
-API definition available [here](https://github.com/DITAS-Project/data-utility-resolution-engine/blob/master/documentation/API%20specification.yaml).
+API definition available [here](https://github.com/DITAS-Project/data-utility-resolution-engine/blob/master/documentation/API_specification.yaml).
 
 ## Implementation language
 Node.js
