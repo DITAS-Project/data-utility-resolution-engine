@@ -14,14 +14,14 @@ pipeline {
 				sh 'cd src; npm install'
 			}
 		}
-		stage('Image creation') {
+		stage('Staging image creation') {
 			agent any
 			steps {
 				// The Dockerfile.artifact copies the code into the image and run the jar generation.
 				echo 'Creating the image...'
 				
 				// This will search for a Dockerfile.artifact in the working directory and build the image to the local repository
-				sh "docker build -t \"ditas/data-utility-resolution-engine\" -f Dockerfile.artifact ."
+				sh "docker build -t \"ditas/data-utility-resolution-engine:staging\" -f Dockerfile.artifact ."
 				echo "Done"
 				echo 'Retrieving Docker Hub password from /opt/ditas-docker-hub.passwd...'
 				
