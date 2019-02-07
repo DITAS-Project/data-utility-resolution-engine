@@ -1,6 +1,6 @@
 {
     "Port":8080,
-    "PSEEndpoint":"http://31.171.247.162:50008/filter",
-	"DUREndpoint":"http://31.171.247.162:50000/datautilityrefinement",
-	"DUEEndpoint":"http://31.171.247.162:50002/datautility"
+    "PSEEndpoint":"http://X.X.X.X:50008/filter",
+	"DUREndpoint":"http://X.X.X.X:50000/datautilityrefinement",
+	"DUEEndpoint":"http://X.X.X.X:50002/datautility"
 }

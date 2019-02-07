@@ -5,8 +5,9 @@ WORKDIR app
 
 # Copy app src code to the image
 COPY src/ .
+COPY entrypoint.sh /entrypoint.sh
 
 RUN npm install
 
 EXPOSE 8080
-CMD [ "npm", "start" ]
+ENTRYPOINT [ "/entrypoint.sh" ]

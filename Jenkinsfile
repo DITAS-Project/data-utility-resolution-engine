@@ -33,8 +33,8 @@ pipeline {
 				echo 'Login to Docker Hub as ditasgeneric...'
 				sh "docker login -u ditasgeneric -p ${password}"
 				echo "Done"
-				echo "Pushing the image ditas/data-utility-resolution-engine:latest..."
-				sh "docker push ditas/data-utility-resolution-engine:latest"
+				echo "Pushing the image ditas/data-utility-resolution-engine:staging..."
+				sh "docker push ditas/data-utility-resolution-engine:staging"
 				echo "Done "
 			}		
 		}
@@ -54,6 +54,20 @@ pipeline {
 			steps {
 				sh './jenkins/dredd/run-api-test.sh'
 			}
+		}
+		stage('Production image creation') {
+            agent any
+            steps {                
+                // Change the tag from staging to production 
+                sh "docker tag ditas/data-utility-resolution-engine:staging ditas/data-utility-resolution-engine:production"
+                sh "docker push ditas/data-utility-resolution-engine:production"
+            }
+        }
+		stage('Deployment in Production') {
+            agent any
+            steps {
+                sh './jenkins/deploy/deploy-production.sh'
+            }
 		}
 	}
 }
