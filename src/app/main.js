@@ -48,17 +48,24 @@ var server = app.listen(port, function () {
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-//REST service
+//REST service (deprecated)
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprints', function (req, res) {
     return res.json(filter(req.body.applicationRequirements, req.body.candidates));
 });
 
+//REST service (new endpoint)
+//input: application requirements, list of couples blueprint, method
+//output: list of tuples blueprint UUID, method, score, pruned requirements
+app.post('/v1/filterBlueprints', function (req, res) {
+    return res.json(filter(req.body.applicationRequirements, req.body.candidates));
+});
+
 //alternative REST service (request sent as form data, for testing purposes)
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
-app.post('/api/filterBlueprintsAlt', function (req, res) {
+app.post('/v1/filterBlueprintsAlt', function (req, res) {
     var requirements = JSON.parse(req.body.applicationRequirements);
     var list = JSON.parse(req.body.candidates);
     return res.json(filter(requirements, list));

@@ -11,6 +11,27 @@ basePath: "/"
 schemes:
 - "http"
 paths:
+  /v1/filterBlueprints:
+    post:
+      summary: "Ranks and filters abstract blueprints based on application requirements"
+      description: "The only API of this method filters a list of blueprints (input) that are complaint with the application requirements (input), and ranks them."
+      consumes:
+      - "application/json; charset=utf-8"
+      produces:
+      - "application/json; charset=utf-8"
+      parameters:
+      - in: "body"
+        name: "Input"
+        description: "Application requirements and list of VDC blueprints. Both imput marged in the same body because at most 1 body parameter can be defined. [Click here for more info](https://github.com/swagger-api/swagger-editor/issues/889)"
+        required: true
+        schema:
+          $ref: "#/definitions/input"
+
+      responses:
+        200:
+          description: "Filtered Blueprints"
+          schema:
+            $ref: '#/definitions/output'
   /api/filterBlueprints:
     post:
       summary: "Ranks and filters abstract blueprints based on application requirements"
@@ -32,7 +53,7 @@ paths:
           description: "Filtered Blueprints"
           schema:
             $ref: '#/definitions/output'
-          
+      deprecated: true    
 
 definitions:
   applicationRequirements:
