@@ -52,14 +52,14 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/api/filterBlueprints', function (req, res) {
-    return res.json(filter(req.body.applicationRequirements, req.body.candidates));
+    return res.json(filter(req.body.applicationRequirements, req.body.candidates, ranker.API_V1));
 });
 
 //REST service (new endpoint)
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/v1/filterBlueprints', function (req, res) {
-    return res.json(filter(req.body.applicationRequirements, req.body.candidates));
+    return res.json(filter(req.body.applicationRequirements, req.body.candidates, ranker.API_V1));
 });
 
 //alternative REST service (request sent as form data, for testing purposes)
@@ -68,10 +68,12 @@ app.post('/v1/filterBlueprints', function (req, res) {
 app.post('/v1/filterBlueprintsAlt', function (req, res) {
     var requirements = JSON.parse(req.body.applicationRequirements);
     var list = JSON.parse(req.body.candidates);
-    return res.json(filter(requirements, list));
+    return res.json(filter(requirements, list, ranker.API_V1));
 })
 
-function filter(requirements, list) {
+function filter(requirements, list, apiVersion) {
+    ranker.setApiLevel(apiVersion);
+    treePruner.setApiLevel(apiVersion);
     var resultSet = [];
     //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
 	if(requirements.attributes!=undefined) {

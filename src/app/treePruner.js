@@ -20,7 +20,35 @@
  */
 
 var exports = module.exports = {};
-var evaluator = require("./evaluator");
+
+var evaluatorV1 = require("./evaluator");
+var evaluatorV2 = require("./evaluatorV2");
+
+const API_V1 = 1;
+const API_V2 = 2;
+
+exports.API_V1 = API_V1;
+exports.API_V2 = API_V2;
+
+var evaluator = evaluatorV1;
+
+exports.setApiLevel = function setApiLevel(level) {
+    if (level == API_V2) {
+        evaluator = evaluatorV2;
+    } else {
+        evaluator = evaluatorV1;
+    }
+}
+
+exports.getApiLevel = function getApiLevel() {
+    if (evaluator == evaluatorV1) {
+        return API_V1;
+    } else if (evaluator == evaluatorV2) {
+        return API_V2;
+    } else {
+        return undefined;
+    }
+}
 
 exports.pruneGoalTree = function pruneGoalTree(constraints, sourceNode, attributes, optimum) {
     var ret = 0;
