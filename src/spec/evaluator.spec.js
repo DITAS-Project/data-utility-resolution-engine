@@ -21,9 +21,9 @@
 
 var evaluator = require("../app/evaluator");
 
-describe('evaluator module unit test -> ', function () {
-    describe('assessProperty function tests -> ', function () {
-        it('checks for equality', function () {
+describe('evaluator module unit test', () => {
+    describe('assessProperty function tests', () => {
+        test('checks for equality', () => {
             var goalProperty = {
                 "name": "Algorithm",
                 "unit": "enum",
@@ -43,7 +43,7 @@ describe('evaluator module unit test -> ', function () {
             expect(evaluator.assessProperty(goalProperty, blueprintPropertyFalse)).toBe(0);
         });
 
-        it('checks for within range', function () {
+        test('checks for within range', () => {
             var goalPropertyRange = {
                 "name": "Availability",
                 "unit": "percentage",
@@ -88,7 +88,7 @@ describe('evaluator module unit test -> ', function () {
             expect(evaluator.assessProperty(goalPropertyUpper, blueprintPropertyUpper2)).toBe(1);
         });
 
-        it('checks for out of range', function () {
+        test('checks for out of range', () => {
             var goalPropertyRange = {
                 "name": "Availability",
                 "unit": "percentage",
@@ -142,8 +142,8 @@ describe('evaluator module unit test -> ', function () {
         });
     });
 
-    describe('assessDUAttributes function tests -> ', function () {
-        it('attribute with single property', function () {
+    describe('assessDUAttributes function tests', () => {
+        test('attribute with single property', () => {
             var goalAttribute = {
                 "id": "1",
                 "name": "Availability 90-99",

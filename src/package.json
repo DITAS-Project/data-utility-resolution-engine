@@ -5,7 +5,7 @@
   "main": "app/main.js",
   "scripts": {
     "prestart": "npm install",
-    "test": "./node_modules/.bin/jasmine-node spec",
+    "test": "jest --verbose ./spec",
     "start": "node app/main.js"
   },
   "author": "Giovanni Meroni, Mattia Salnitri",
@@ -18,7 +18,7 @@
     "sync-request": "^6.0.0"
   },
   "devDependencies": {
-    "unirest": "^0.5.1",
-    "jasmine-node": "^1.14.5"
+    "jest": "^24.0.0",
+    "unirest": "^0.6.0"
   }
 }
