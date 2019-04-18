@@ -2,7 +2,7 @@
  * Data Utility Resolution Engine (DURE) module
  * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
  *
- * Copyright 2018 Politecnico di Milano
+ * Copyright 2018-19 Politecnico di Milano
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,6 +25,7 @@ app.use(express.static(__dirname));
 var bodyParser = require('body-parser');
 var ranker = require("./ranker");
 var treePruner = require("./treePruner");
+var dqHandler = require("./dqHandler");
 var config = require('./config.json');
 
 var port = 8080;
@@ -59,7 +60,7 @@ app.post('/api/filterBlueprints', function (req, res) {
 //input: application requirements, list of couples blueprint, method
 //output: list of tuples blueprint UUID, method, score, pruned requirements
 app.post('/v1/filterBlueprints', function (req, res) {
-    return res.json(filter(req.body.applicationRequirements, req.body.candidates, ranker.API_V1));
+    return res.json(filter(req.body.applicationRequirements, req.body.candidates, ranker.API_V2));
 });
 
 //alternative REST service (request sent as form data, for testing purposes)
@@ -71,19 +72,36 @@ app.post('/v1/filterBlueprintsAlt', function (req, res) {
     return res.json(filter(requirements, list, ranker.API_V1));
 })
 
+//alternative REST service (request sent as form data, for testing purposes)
+//input: application requirements, list of couples blueprint, method
+//output: list of tuples blueprint UUID, method, score, pruned requirements
+app.post('/v2/filterBlueprintsAlt', function (req, res) {
+    var requirements = JSON.parse(req.body.applicationRequirements);
+    var list = JSON.parse(req.body.candidates);
+    return res.json(filter(requirements, list, ranker.API_V2));
+})
+
 function filter(requirements, list, apiVersion) {
     ranker.setApiLevel(apiVersion);
     treePruner.setApiLevel(apiVersion);
     var resultSet = [];
-    //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
-	if(requirements.attributes!=undefined) {
+
+    if (apiVersion == ranker.API_V2) {
+        requirements = dqHandler.rebalanceGoalTree(requirements);
+    }
+
+    if (requirements.attributes != undefined) {
 		//identify best value for each attribute (considering all blueprints)
-		var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
+        var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
 	}
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
-        //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
+
+        if (apiVersion == ranker.API_V2) {
+            blueprint = dqHandler.computePDU(requirements, blueprint);
+        }
+
         var methods = blueprint.DATA_MANAGEMENT;
         for (var methodName in methodNames) {
             for (var method in methods) {
@@ -98,10 +116,14 @@ function filter(requirements, list, apiVersion) {
                     var privacyScore = ranker.computeScore(requirements.attributes.privacy,
                         requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                     //compute global score
-                
+
+                    console.log(dataUtilityScore);
+
                     var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
 
                     if (globalScore > 0) {
+                        //replace attributes with application requirements
+                        blueprint.DATA_MANAGEMENT[method].attributes = requirements.attributes;
                         //prune requirements goal tree
                         var trees = {};
                         trees.method_id = methodNames[methodName];

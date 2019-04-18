@@ -249,10 +249,6 @@ exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
     });
 
     var body = JSON.parse(res.body);
-    console.log("body is " + res.body)
-    console.log("data are " + body);
-    console.log("length is " + body.length)
-
     if (body.length > 0) {
         return 1;
     } else {

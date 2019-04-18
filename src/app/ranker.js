@@ -2,7 +2,7 @@
  * Data Utility Resolution Engine (DURE) module
  * Code written by Giovanni Meroni (giovanni.meroni@polimi.it)
  *
- * Copyright 2018 Politecnico di Milano
+ * Copyright 2018-19 Politecnico di Milano
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of

@@ -28,12 +28,13 @@ var pse_module_url = config.PSEEndpoint; //"http://31.171.247.162:50008/filter";
 
 exports.compareDUAttributes = function compareDUAttributes(requirement, attribute, optimum) {
     //attribute fulfills requirement
-    if (module.exports.assessDUAttributes(requirement, attribute, attribute) > 0) {
+    if (module.exports.assessDUAttributes(requirement, attribute, undefined) > 0) {
         //no optimum attribute defined, thus current one is optimum
         if (optimum === undefined) {
             optimum = {};
             optimum.properties = {};
             for (var requirementProperty in requirement.properties) {
+                console.log("optimum is "+ JSON.stringify(compareProperty(requirement.properties[requirementProperty], undefined, attribute.properties[requirementProperty])));
                 optimum.properties[requirementProperty] = compareProperty(requirement.properties[requirementProperty], undefined, attribute.properties[requirementProperty]);
             }
         } else {
@@ -46,47 +47,97 @@ exports.compareDUAttributes = function compareDUAttributes(requirement, attribut
 }
 
 function compareProperty(requirementProperty, optimumProperty, attributeProperty) {
-    //minimum threshold defined for requirements
-    if (requirementProperty.minimum !== undefined) {
-        //no maximum threshold, so it is not a range
-        if (requirementProperty.maximum === undefined) {
-            //determine if attribute is greater than current optimum
-            if (optimumProperty !== undefined && attributeProperty.minimum !== undefined) {
-                if (optimumProperty < attributeProperty.minimum) {
-                    return attributeProperty.minimum;
-                }
-            } else if (optimumProperty !== undefined && attributeProperty.value !== undefined) {
-                if (optimumProperty < attributeProperty.value) {
-                    return attributeProperty.value;
-                }
-            } else if (optimumProperty === undefined && attributeProperty.minimum !== undefined) {
-                return attributeProperty.minimum;
-            } else if (optimumProperty === undefined && attributeProperty.value !== undefined) {
+
+    //exact match
+    if (requirementProperty.value !== undefined) {
+        //determine if attribute satisfies constraint
+        if (optimumProperty == undefined && attributeProperty.value !== undefined) {
+            if (attributeProperty.value == requirementProperty.value) {
                 return attributeProperty.value;
             }
         }
-        //maximum threshold defined for requirements
+        //maximize value
+    } else if (requirementProperty.minimum !== undefined) {
+        //determine if attribute is greater than requirement
+        if (optimumProperty == undefined) {
+            //find if best configuration (attributeProperty.maximum) has been specified
+            if (attributeProperty.maximum !== undefined) {
+                if (attributeProperty.maximum > requirementProperty.minimum) {
+                    return attributeProperty.maximum;
+                }
+                //find if average (DITAS) configuration (attributeProperty.value) has been specified
+            } else if (attributeProperty.value !== undefined) {
+                if (attributeProperty.value > requirementProperty.minimum) {
+                    return attributeProperty.value;
+                }
+                //find if worst configuration (attributeProperty.minimum) has been specified
+            } else if (attributeProperty.minimum !== undefined) {
+                if (attributeProperty.minimum > requirementProperty.minimum) {
+                    return attributeProperty.minimum;
+                }
+            }
+            //determine if attribute is lower than current optimum (which is lower than requirement by definition)
+        } else {
+            //find if best configuration (attributeProperty.maximum) has been specified
+            if (attributeProperty.maximum !== undefined) {
+                if (attributeProperty.maximum > optimumProperty) {
+                    return attributeProperty.maximum;
+                }
+                //find if average (DITAS) configuration (attributeProperty.value) has been specified
+            } else if (attributeProperty.value !== undefined) {
+                if (attributeProperty.value > optimumProperty) {
+                    return attributeProperty.value;
+                }
+                //find if worst configuration (attributeProperty.minimum) has been specified
+            } else if (attributeProperty.minimum !== undefined) {
+                if (attributeProperty.minimum > optimumProperty) {
+                    return attributeProperty.minimum;
+                }
+            } 
+        }
+        //minimize value
     } else if (requirementProperty.maximum !== undefined) {
-        //determine if attribute is lower than current optimum
-        if (optimumProperty !== undefined && attributeProperty.maximum !== undefined) {
-            if (optimumProperty > attributeProperty.maximum) {
-                return attributeProperty.maximum;
+        //determine if attribute is lower than requirement
+        if (optimumProperty == undefined) {
+            //find if best configuration (attributeProperty.maximum) has been specified
+            if (attributeProperty.maximum !== undefined) {
+                if (attributeProperty.maximum < requirementProperty.maximum) {
+                    return attributeProperty.minimum;
+                }
+                //find if average (DITAS) configuration (attributeProperty.value) has been specified
+            } else if (attributeProperty.value !== undefined) {
+                if (attributeProperty.value < requirementProperty.maximum) {
+                    return attributeProperty.value;
+                }
+                //find if worst configuration (attributeProperty.minimum) has been specified
+            } else if (attributeProperty.minimum !== undefined) {
+                if (attributeProperty.minimum < requirementProperty.maximum) {
+                    return attributeProperty.maximum;
+                }
             }
-        } else if (optimumProperty !== undefined && attributeProperty.value !== undefined) {
-            if (optimumProperty > attributeProperty.value) {
-                return attributeProperty.value;
+            //determine if attribute is lower than current optimum (which is lower than requirement by definition)
+        } else {
+            //find if best configuration (attributeProperty.maximum) has been specified
+            if (attributeProperty.maximum !== undefined) {
+                if (attributeProperty.maximum < optimumProperty) {
+                    return attributeProperty.maximum;
+                }
+                //find if average (DITAS) configuration (attributeProperty.value) has been specified
+            } else if (attributeProperty.value !== undefined) {
+                if (attributeProperty.value < optimumProperty) {
+                    return attributeProperty.value;
+                }
+                //find if worst configuration (attributeProperty.minimum) has been specified
+            } else if (attributeProperty.minimum !== undefined) {
+                if (attributeProperty.minimum < optimumProperty) {
+                    return attributeProperty.minimum;
+                }
             }
-        } else if (optimumProperty === undefined && attributeProperty.maximum !== undefined) {
-            return attributeProperty.maximum;
-        } else if (optimumProperty === undefined && attributeProperty.value !== undefined) {
-            return attributeProperty.value;
         }
     }
     //current optimum is still the best case
     return optimumProperty;
 }
-
-
 
 exports.assessGoal = function assessGoal(requirements, goal, attributes, optimum) {
     //verify if all requirements belonging to that goal are fulfilled
@@ -134,9 +185,16 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
     var score = 1;
     for (var requirementProperty in goalRequirement.properties) {
         // a property exists
-        if (blueprintAttribute.properties[requirementProperty] !== undefined && optimumAttribute !== undefined) {
+        if (blueprintAttribute.properties[requirementProperty] !== undefined) {
+            console.log("examining property: " + JSON.stringify(requirementProperty));
             //compute score
-            score = score * module.exports.assessProperty(goalRequirement.properties[requirementProperty], blueprintAttribute.properties[requirementProperty], optimumAttribute.properties[requirementProperty])
+            if (optimumAttribute !== undefined) {
+                score = score * module.exports.assessProperty(goalRequirement.properties[requirementProperty], blueprintAttribute.properties[requirementProperty], optimumAttribute.properties[requirementProperty]);
+                console.log("score is " + score);
+            } else {
+                score = score * module.exports.assessProperty(goalRequirement.properties[requirementProperty], blueprintAttribute.properties[requirementProperty], undefined);
+                console.log("score is " + score);
+            }
         } else {
             // property is missing, attribute is not fulfilled
             return 0;
@@ -146,95 +204,95 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
 }
 
 exports.assessProperty = function assessProperty(requirementProperty, blueprintProperty, optimumProperty) {
-    //minimum threshold was specified for goal property
-    if (requirementProperty.minimum !== undefined) {
-        //minimum threshold was specified for blueprint property
-        if (blueprintProperty.minimum !== undefined) {
-            //verify if property is not within threshold
-            if (requirementProperty.minimum > blueprintProperty.minimum) {
-                //goal metric is not fulfilled
-                return 0;
-            } 
-        } else {
-            //a fixed value is defined for the blueprint
-            if (blueprintProperty.value !== undefined) {
-                //verify if property is not within threshold
-                if (requirementProperty.minimum > blueprintProperty.value) {
-                    //goal metric is not fulfilled
-                    return 0;
-                }
-                //no minimum threshold was specified for the blueprint property
-            } else {
-                return 0;
-            }
-        }
-    }
-    //maximum threshold was specified for goal property
-    if (requirementProperty.maximum !== undefined) {
-        //maximum threshold was specified for blueprint property
-        if (blueprintProperty.maximum !== undefined) {
-            //verify if property is not within threshold
-            if (requirementProperty.maximum < blueprintProperty.maximum) {
-                //goal property is not fulfilled
-                return 0
-            }
-            
-        } else {
-            //a fixed value is defined for the blueprint
-            if (blueprintProperty.value !== undefined) {
-                //verify if property is not within threshold
-                if (requirementProperty.maximum < blueprintProperty.value) {
-                    //goal metric is not fulfilled
-                    return 0;
-                }
-                //no maximum threshold was specified for the blueprint property
-            } else {
-                return 0;
-            }
-        }
-    }
-    //a specific value was specified for goal property
+    //exact match is required
     if (requirementProperty.value !== undefined) {
-        //a specific value was specified for blueprint property
         if (blueprintProperty.value !== undefined) {
-            //verify if both values are the same
-            if (requirementProperty.value !== blueprintProperty.value) {
-                //goal property is not fulfilled
-                return 0
+            if (requirementProperty.value == blueprintProperty.value) {
+                return 1;
             }
-            //no specific value was specified for the blueprint property
-        } else {
-            //goal property is not fulfilled
-            return 0
         }
-    }
-    //all checks were passed, property was fulfilled, now determine score
-    //lower bound
-    if (optimumProperty !== undefined) {
-        if (requirementProperty.minimum !== undefined) {
-            //no upper bound
-            if (requirementProperty.maximum === undefined && (optimumProperty - requirementProperty.minimum > 0) ) {
-                //compute score: the closer the property is to the optimum, the best the result is
-                if (blueprintProperty.minimum !== undefined) {
-                    return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum))
-                } else if (blueprintProperty.value !== undefined) {
-                    return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum))
+    //maximize value
+    } else if (requirementProperty.minimum !== undefined) {
+        //determine if attribute is greater than requirement
+        if (optimumProperty == undefined) {
+            //find if best configuration (blueprintProperty.maximum) has been specified
+            if (blueprintProperty.maximum !== undefined) {
+                if (blueprintProperty.maximum > requirementProperty.minimum) {
+                    return 1;
+                }
+                //find if average (DITAS) configuration (blueprintProperty.value) has been specified
+            } else if (blueprintProperty.value !== undefined) {
+                if (blueprintProperty.value > requirementProperty.minimum) {
+                    return 1;
+                }
+                //find if worst configuration (blueprintProperty.minimum) has been specified
+            } else if (blueprintProperty.minimum !== undefined) {
+                if (blueprintProperty.minimum > requirementProperty.minimum) {
+                    return 1;
                 }
             }
-            //upper bound
-        } else if (requirementProperty.maximum !== undefined) {
-            if ((requirementProperty.maximum - optimumProperty) > 0) {
-                //compute score: the closer the property is to the optimum, the best the result is
-                if (blueprintProperty.maximum !== undefined) {
+            //determine if attribute is lower than current optimum (which is lower than requirement by definition)
+        } else {
+            //find if best configuration (blueprintProperty.maximum) has been specified
+            if (blueprintProperty.maximum !== undefined) {
+                if (blueprintProperty.maximum > requirementProperty.minimum) {
+                    return 0.5 + 0.5 * ((blueprintProperty.maximum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+                }
+                //find if average (DITAS) configuration (blueprintProperty.value) has been specified
+            } else if (blueprintProperty.value !== undefined) {
+                if (blueprintProperty.value > requirementProperty.minimum) {
+                    return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+                }
+                //find if worst configuration (blueprintProperty.minimum) has been specified
+            } else if (blueprintProperty.minimum !== undefined) {
+                if (blueprintProperty.minimum > requirementProperty.minimum) {
+                    return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+                }
+            }
+        }
+        //minimize value
+    } else if (requirementProperty.maximum !== undefined) {
+        //determine if attribute is lower than requirement
+        if (optimumProperty == undefined) {
+            //find if best configuration (blueprintProperty.maximum) has been specified
+            if (blueprintProperty.maximum !== undefined) {
+                if (blueprintProperty.maximum < requirementProperty.maximum) {
+                    return 1;
+                }
+                //find if average (DITAS) configuration (blueprintProperty.value) has been specified
+            } else if (blueprintProperty.value !== undefined) {
+                if (blueprintProperty.value < requirementProperty.maximum) {
+                    return 1;
+                }
+                //find if worst configuration (blueprintProperty.minimum) has been specified
+            } else if (blueprintProperty.minimum !== undefined) {
+                if (blueprintProperty.minimum < requirementProperty.maximum) {
+                    return 1;
+                }
+            }
+            //determine if attribute is lower than current optimum (which is lower than requirement by definition)
+        } else {
+            //find if best configuration (blueprintProperty.maximum) has been specified
+            if (blueprintProperty.maximum !== undefined) {
+                if (blueprintProperty.maximum < requirementProperty.maximum) {
                     return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.maximum) / (requirementProperty.maximum - optimumProperty))
-                } else if (blueprintProperty.value !== undefined) {
+                }
+                //find if average (DITAS) configuration (blueprintProperty.value) has been specified
+            } else if (blueprintProperty.value !== undefined) {
+                if (blueprintProperty.value < requirementProperty.maximum) {
                     return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.value) / (requirementProperty.maximum - optimumProperty))
                 }
+                //find if worst configuration (blueprintProperty.minimum) has been specified
+            } else if (blueprintProperty.minimum !== undefined) {
+                if (blueprintProperty.minimum < requirementProperty.maximum) {
+                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.minimum) / (requirementProperty.maximum - optimumProperty))
+                }
             }
         }
     }
-    //no comparison is possible, binary decision
-    return 1;
+
+    //constraint is not satisfied
+    return 0;
 }
 
 exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
@@ -249,10 +307,11 @@ exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
     });
 
     var body = JSON.parse(res.body);
+    /*
     console.log("body is " + res.body)
     console.log("data are " + body);
     console.log("length is " + body.length)
-
+    */
     if (body.length > 0) {
         return 1;
     } else {
