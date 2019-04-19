@@ -86,13 +86,12 @@ function filter(requirements, list, apiVersion) {
     treePruner.setApiLevel(apiVersion);
     var resultSet = [];
 
-    if (apiVersion == ranker.API_V2) {
-        requirements = dqHandler.rebalanceGoalTree(requirements);
-    }
-
     if (requirements.attributes != undefined) {
 		//identify best value for each attribute (considering all blueprints)
         var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
+        if (apiVersion == ranker.API_V2) {
+            requirements = dqHandler.rebalanceGoalTree(requirements);
+        }
 	}
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
@@ -151,7 +150,6 @@ function filter(requirements, list, apiVersion) {
         }
     }
     return resultSet.sort(compare);
-    //return resultSet;
 };
 
 function compare(a, b) {
