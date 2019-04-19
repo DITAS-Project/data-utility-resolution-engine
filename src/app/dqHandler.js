@@ -61,7 +61,9 @@ exports.rebalanceGoalTree = function rebalanceGoalTree(requirements) {
 
 exports.computePDU = function computePDU(requirements, blueprint) {
     //TODO invocazione webservice DUE per calcolo data utility (Paci - Cappiello) (localhost:50000)
-    var tables = requirements.functionalRequirements.schema
+    if (requirements.functionalRequirements !== undefined) {
+        var tables = requirements.functionalRequirements.schema
+    }
     return blueprint;
 }
 
