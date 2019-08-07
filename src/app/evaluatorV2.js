@@ -62,17 +62,17 @@ function compareProperty(requirementProperty, optimumProperty, attributeProperty
         if (optimumProperty == undefined) {
             //find if best configuration (attributeProperty.maximum) has been specified
             if (attributeProperty.maximum !== undefined) {
-                if (attributeProperty.maximum > requirementProperty.minimum) {
+                if (attributeProperty.maximum >= requirementProperty.minimum) {
                     return attributeProperty.maximum;
                 }
                 //find if average (DITAS) configuration (attributeProperty.value) has been specified
             } else if (attributeProperty.value !== undefined) {
-                if (attributeProperty.value > requirementProperty.minimum) {
+                if (attributeProperty.value >= requirementProperty.minimum) {
                     return attributeProperty.value;
                 }
                 //find if worst configuration (attributeProperty.minimum) has been specified
             } else if (attributeProperty.minimum !== undefined) {
-                if (attributeProperty.minimum > requirementProperty.minimum) {
+                if (attributeProperty.minimum >= requirementProperty.minimum) {
                     return attributeProperty.minimum;
                 }
             }
@@ -101,17 +101,17 @@ function compareProperty(requirementProperty, optimumProperty, attributeProperty
         if (optimumProperty == undefined) {
             //find if best configuration (attributeProperty.maximum) has been specified
             if (attributeProperty.maximum !== undefined) {
-                if (attributeProperty.maximum < requirementProperty.maximum) {
+                if (attributeProperty.maximum <= requirementProperty.maximum) {
                     return attributeProperty.maximum;
                 }
                 //find if average (DITAS) configuration (attributeProperty.value) has been specified
             } else if (attributeProperty.value !== undefined) {
-                if (attributeProperty.value < requirementProperty.maximum) {
+                if (attributeProperty.value <= requirementProperty.maximum) {
                     return attributeProperty.value;
                 }
                 //find if worst configuration (attributeProperty.minimum) has been specified
             } else if (attributeProperty.minimum !== undefined) {
-                if (attributeProperty.minimum < requirementProperty.maximum) {
+                if (attributeProperty.minimum <= requirementProperty.maximum) {
                     return attributeProperty.minimum;
                 }
             }
@@ -220,17 +220,17 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
             console.log("no optimum");
 			//find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
-                if (blueprintProperty.maximum > requirementProperty.minimum) {
+                if (blueprintProperty.maximum >= requirementProperty.minimum) {
                     return 1;
                 }
                 //find if average (DITAS) configuration (blueprintProperty.value) has been specified
             } else if (blueprintProperty.value !== undefined) {
-                if (blueprintProperty.value > requirementProperty.minimum) {
+                if (blueprintProperty.value >= requirementProperty.minimum) {
                     return 1;
                 }
                 //find if worst configuration (blueprintProperty.minimum) has been specified
             } else if (blueprintProperty.minimum !== undefined) {
-                if (blueprintProperty.minimum > requirementProperty.minimum) {
+                if (blueprintProperty.minimum >= requirementProperty.minimum) {
                     return 1;
                 }
             }
@@ -240,20 +240,32 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
 			//find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
                 console.log("maximum defined");
-				if (blueprintProperty.maximum > requirementProperty.minimum) {
-                    return 0.5 + 0.5 * ((blueprintProperty.maximum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+				if (blueprintProperty.maximum >= requirementProperty.minimum) {
+					if (optimumProperty - requirementProperty.minimum > 0) {
+						return 0.5 + 0.5 * ((blueprintProperty.maximum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+					} else {
+						return 1;
+					}
                 }
                 //find if average (DITAS) configuration (blueprintProperty.value) has been specified
             } else if (blueprintProperty.value !== undefined) {
                 console.log("value defined");
-				if (blueprintProperty.value > requirementProperty.minimum) {
-                    return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+				if (blueprintProperty.value >= requirementProperty.minimum) {
+                    if (optimumProperty - requirementProperty.minimum > 0) {
+						return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+					} else {
+						return 1;
+					}
                 }
                 //find if worst configuration (blueprintProperty.minimum) has been specified
             } else if (blueprintProperty.minimum !== undefined) {
                 console.log("minimum defined: " + blueprintProperty.minimum + " vs " + requirementProperty.minimum);
-				if (blueprintProperty.minimum > requirementProperty.minimum) {
-					return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+				if (blueprintProperty.minimum >= requirementProperty.minimum) {
+					if (optimumProperty - requirementProperty.minimum > 0) {
+						return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+					} else {
+						return 1;
+					}
                 }
             }
         }
@@ -263,17 +275,17 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
         if (optimumProperty == undefined) {
             //find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
-                if (blueprintProperty.maximum < requirementProperty.maximum) {
+                if (blueprintProperty.maximum <= requirementProperty.maximum) {
                     return 1;
                 }
                 //find if average (DITAS) configuration (blueprintProperty.value) has been specified
             } else if (blueprintProperty.value !== undefined) {
-                if (blueprintProperty.value < requirementProperty.maximum) {
+                if (blueprintProperty.value <= requirementProperty.maximum) {
                     return 1;
                 }
                 //find if worst configuration (blueprintProperty.minimum) has been specified
             } else if (blueprintProperty.minimum !== undefined) {
-                if (blueprintProperty.minimum < requirementProperty.maximum) {
+                if (blueprintProperty.minimum <= requirementProperty.maximum) {
                     return 1;
                 }
             }
@@ -281,18 +293,30 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
         } else {
             //find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
-                if (blueprintProperty.maximum < requirementProperty.maximum) {
-                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.maximum) / (requirementProperty.maximum - optimumProperty))
+                if (blueprintProperty.maximum <= requirementProperty.maximum) {
+					if (requirementProperty.maximum - optimumProperty > 0) {
+						return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.maximum) / (requirementProperty.maximum - optimumProperty))
+					} else {
+						return 1;
+					}
                 }
                 //find if average (DITAS) configuration (blueprintProperty.value) has been specified
             } else if (blueprintProperty.value !== undefined) {
-                if (blueprintProperty.value < requirementProperty.maximum) {
-                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.value) / (requirementProperty.maximum - optimumProperty))
+                if (blueprintProperty.value <= requirementProperty.maximum) {
+					if (requirementProperty.maximum - optimumProperty > 0) {
+						return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.value) / (requirementProperty.maximum - optimumProperty))
+					} else {
+						return 1;
+					}
                 }
                 //find if worst configuration (blueprintProperty.minimum) has been specified
             } else if (blueprintProperty.minimum !== undefined) {
-                if (blueprintProperty.minimum < requirementProperty.maximum) {
-                    return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.minimum) / (requirementProperty.maximum - optimumProperty))
+                if (blueprintProperty.minimum <= requirementProperty.maximum) {
+					if (requirementProperty.maximum - optimumProperty > 0) {
+						return 0.5 + 0.5 * ((requirementProperty.maximum - blueprintProperty.minimum) / (requirementProperty.maximum - optimumProperty))
+					} else {
+						return 1;
+					}
                 }
             }
         }
