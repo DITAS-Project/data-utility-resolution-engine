@@ -129,19 +129,27 @@ exports.computeInputPDU = function computeInputPDU(requirements, blueprint, meth
 
 exports.computeOutputPDU = function computeOutputPDU(requirements, blueprint) {
     var bpMethods = blueprint.INTERNAL_STRUCTURE.Testing_Output_Data;
-    var reqMethods = requirements.methodsOutput.Methods;
+    var reqMethods = requirements.methodsOutput.methods;
     var changed = false;
-    for (var methodName in reqMethods) {
+	console.log("******");
+    console.log("output PDU invoked");
+	console.log(bpMethods);
+	
+	for (var methodName in reqMethods) {
+		console.log("analyzing " + methodName);
         for (var bpMethod in bpMethods) {
+			console.log("analyzing " + bpMethod);
             if (bpMethods[bpMethod].method_id === reqMethods[methodName].method_id) { //requested method exists in blueprint
-                bpMethods[bpMethod].attributes = reqMethods[methodName].attributes;
+                console.log("found match");
+				bpMethods[bpMethod].attributes = reqMethods[methodName].attributes;
                 changed = true;
             }
         }
     }
     if (changed) { //only some output attributes are required
         //invoke DUE webservice
-        return invokeDUE(blueprint);
+		//*** uncomment the following line once the DUE has been deployed ***
+        //return invokeDUE(blueprint);
     }
     return blueprint;
 }
