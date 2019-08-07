@@ -88,8 +88,10 @@ function filter(requirements, list, apiVersion) {
 
     if (requirements.attributes != undefined) {
 		//identify best value for each attribute (considering all blueprints)
+		
         var optimumDUValues = ranker.computeOptimumDU(requirements.attributes.dataUtility, list);
-        if (apiVersion == ranker.API_V2) {
+        console.log("computed optimum values");
+		if (apiVersion == ranker.API_V2) {
             requirements = dqHandler.rebalanceGoalTree(requirements);
         }
 	}
@@ -98,7 +100,7 @@ function filter(requirements, list, apiVersion) {
         var methodNames = list[listitem].methodNames;
 
         if (apiVersion == ranker.API_V2) {
-            blueprint = dqHandler.computePDU(requirements, blueprint);
+            blueprint = dqHandler.computeOutputPDU(requirements, blueprint);
         }
 
         var methods = blueprint.DATA_MANAGEMENT;
@@ -116,13 +118,13 @@ function filter(requirements, list, apiVersion) {
                         requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                     //compute global score
 
-                    console.log(dataUtilityScore);
+                    console.log("data utility:" + dataUtilityScore);
+					console.log("security:" + securityScore);
+					console.log("privacy:" + privacyScore);
 
                     var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
 
                     if (globalScore > 0) {
-                        //replace attributes with application requirements
-                        blueprint.DATA_MANAGEMENT[method].attributes = requirements.attributes;
                         //prune requirements goal tree
                         var trees = {};
                         trees.method_id = methodNames[methodName];
@@ -137,6 +139,8 @@ function filter(requirements, list, apiVersion) {
                             requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                         methods[method].attributes.privacy = requirements.attributes.privacy;
                         blueprint.ABSTRACT_PROPERTIES = [trees];
+                        //replace attributes with application requirements
+                        blueprint.DATA_MANAGEMENT[method].attributes = requirements.attributes;
                         //return blueprint with rank and pruned goal trees
                         var item = {
                             blueprint: blueprint,

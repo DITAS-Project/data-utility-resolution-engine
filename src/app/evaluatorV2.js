@@ -102,7 +102,7 @@ function compareProperty(requirementProperty, optimumProperty, attributeProperty
             //find if best configuration (attributeProperty.maximum) has been specified
             if (attributeProperty.maximum !== undefined) {
                 if (attributeProperty.maximum < requirementProperty.maximum) {
-                    return attributeProperty.minimum;
+                    return attributeProperty.maximum;
                 }
                 //find if average (DITAS) configuration (attributeProperty.value) has been specified
             } else if (attributeProperty.value !== undefined) {
@@ -112,7 +112,7 @@ function compareProperty(requirementProperty, optimumProperty, attributeProperty
                 //find if worst configuration (attributeProperty.minimum) has been specified
             } else if (attributeProperty.minimum !== undefined) {
                 if (attributeProperty.minimum < requirementProperty.maximum) {
-                    return attributeProperty.maximum;
+                    return attributeProperty.minimum;
                 }
             }
             //determine if attribute is lower than current optimum (which is lower than requirement by definition)
@@ -204,7 +204,8 @@ exports.assessDUAttributes = function assessDUAttributes(goalRequirement, bluepr
 }
 
 exports.assessProperty = function assessProperty(requirementProperty, blueprintProperty, optimumProperty) {
-    //exact match is required
+    console.log("invoked assessProperty");
+	//exact match is required
     if (requirementProperty.value !== undefined) {
         if (blueprintProperty.value !== undefined) {
             if (requirementProperty.value == blueprintProperty.value) {
@@ -213,9 +214,11 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
         }
     //maximize value
     } else if (requirementProperty.minimum !== undefined) {
-        //determine if attribute is greater than requirement
+        console.log("minimum");
+		//determine if attribute is greater than requirement
         if (optimumProperty == undefined) {
-            //find if best configuration (blueprintProperty.maximum) has been specified
+            console.log("no optimum");
+			//find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
                 if (blueprintProperty.maximum > requirementProperty.minimum) {
                     return 1;
@@ -233,20 +236,24 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
             }
             //determine if attribute is lower than current optimum (which is lower than requirement by definition)
         } else {
-            //find if best configuration (blueprintProperty.maximum) has been specified
+            console.log("optimum");
+			//find if best configuration (blueprintProperty.maximum) has been specified
             if (blueprintProperty.maximum !== undefined) {
-                if (blueprintProperty.maximum > requirementProperty.minimum) {
+                console.log("maximum defined");
+				if (blueprintProperty.maximum > requirementProperty.minimum) {
                     return 0.5 + 0.5 * ((blueprintProperty.maximum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
                 }
                 //find if average (DITAS) configuration (blueprintProperty.value) has been specified
             } else if (blueprintProperty.value !== undefined) {
-                if (blueprintProperty.value > requirementProperty.minimum) {
+                console.log("value defined");
+				if (blueprintProperty.value > requirementProperty.minimum) {
                     return 0.5 + 0.5 * ((blueprintProperty.value - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
                 }
                 //find if worst configuration (blueprintProperty.minimum) has been specified
             } else if (blueprintProperty.minimum !== undefined) {
-                if (blueprintProperty.minimum > requirementProperty.minimum) {
-                    return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
+                console.log("minimum defined: " + blueprintProperty.minimum + " vs " + requirementProperty.minimum);
+				if (blueprintProperty.minimum > requirementProperty.minimum) {
+					return 0.5 + 0.5 * ((blueprintProperty.minimum - requirementProperty.minimum) / (optimumProperty - requirementProperty.minimum));
                 }
             }
         }
@@ -307,11 +314,11 @@ exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
     });
 
     var body = JSON.parse(res.body);
-    /*
+    console.log("request body is " + JSON.stringify(args))
     console.log("body is " + res.body)
     console.log("data are " + body);
     console.log("length is " + body.length)
-    */
+    
     if (body.length > 0) {
         return 1;
     } else {
