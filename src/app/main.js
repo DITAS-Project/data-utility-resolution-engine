@@ -99,7 +99,7 @@ function filter(requirements, list, apiVersion) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
 
-        if (apiVersion == ranker.API_V2) {
+        if (apiVersion == ranker.API_V2 && blueprint.INTERNAL_STRUCTURE != undefined) {
             blueprint = dqHandler.computeOutputPDU(requirements, blueprint);
         }
 
