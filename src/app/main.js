@@ -98,6 +98,9 @@ function filter(requirements, list, apiVersion) {
     for (var listitem in list) {
         var blueprint = list[listitem].blueprint;
         var methodNames = list[listitem].methodNames;
+		var validMethods = [];
+		var scores = [];
+		blueprint.ABSTRACT_PROPERTIES = [];
 
         if (apiVersion == ranker.API_V2 && blueprint.INTERNAL_STRUCTURE != undefined) {
             blueprint = dqHandler.computeOutputPDU(requirements, blueprint);
@@ -122,9 +125,9 @@ function filter(requirements, list, apiVersion) {
 					console.log("security:" + securityScore);
 					console.log("privacy:" + privacyScore);
 
-                    var globalScore = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
+                    var score = ranker.computeGlobalScore(dataUtilityScore, securityScore, privacyScore);
 
-                    if (globalScore > 0) {
+                    if (score > 0) {
                         //prune requirements goal tree
                         var trees = {};
                         trees.method_id = methodNames[methodName];
@@ -138,20 +141,25 @@ function filter(requirements, list, apiVersion) {
                         trees.goalTrees.privacy = treePruner.pruneGoalTree(requirements.attributes.privacy,
                             requirements.goalTrees.privacy, methods[method].attributes.privacy, undefined);
                         methods[method].attributes.privacy = requirements.attributes.privacy;
-                        blueprint.ABSTRACT_PROPERTIES = [trees];
+                        blueprint.ABSTRACT_PROPERTIES.push(trees);
                         //replace attributes with application requirements
                         blueprint.DATA_MANAGEMENT[method].attributes = requirements.attributes;
-                        //return blueprint with rank and pruned goal trees
-                        var item = {
-                            blueprint: blueprint,
-                            score: globalScore,
-                            methodNames: [methodNames[methodName]]
-                        };
-                        resultSet.push(item);
+						//add current score
+						scores.push(score);
+						validMethods.push(methodNames[methodName]);
                     }
                 }
             }
         }
+		if (scores.length > 0) {
+			//return blueprint with rank and pruned goal trees
+			var item = {
+				blueprint: blueprint,
+				score: 1,
+				methodNames: validMethods
+			};
+			resultSet.push(item);
+		}
     }
     return resultSet.sort(compare);
 };
