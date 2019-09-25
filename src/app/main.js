@@ -154,7 +154,7 @@ function filter(requirements, list, apiVersion) {
 		if (scores.length > 0) {
 			//return blueprint with rank and pruned goal trees
 			var item = {
-				blueprint: blueprint,
+				blueprint: mergeCookBook(blueprint,requirements),
 				score: 1,
 				methodNames: validMethods
 			};
@@ -163,6 +163,70 @@ function filter(requirements, list, apiVersion) {
     }
     return resultSet.sort(compare);
 };
+
+function setOwner(infrastructures, owner){
+	var changed = false;
+	for (var infrastructure in infrastructures) {
+		changed = true;
+		if (infrastructures[infrastructure].extra_properties != null) {
+			infrastructures[infrastructure].extra_properties.owner = owner;
+		} else {
+			infrastructures[infrastructure].extra_properties = { "owner" : owner };
+		}
+	}
+	if (changed) {
+		return infrastructures;
+	} else {
+		return undefined;
+	}
+}
+
+function mergeCookBook(blueprint, requirements){
+	
+	var markedReqInfra = undefined;
+	var markedBPInfra = undefined;
+	//set owner to application requirement resources
+	if (requirements.providedResources != undefined){
+		if (requirements.providedResources.infrastructures != undefined){
+			markedReqInfra = setOwner(requirements.providedResources.infrastructures, "ApplicationDeveloper");
+		}
+	}
+	
+	//set owner to blueprint resources
+	if (blueprint.COOKBOOK_APPENDIX != undefined){
+		if (blueprint.COOKBOOK_APPENDIX.Resources != undefined){
+			if (blueprint.COOKBOOK_APPENDIX.Resources.infrastructures != undefined) {
+				markedBPInfra = setOwner(blueprint.COOKBOOK_APPENDIX.Resources.infrastructures, "DataAdministrator");
+			}
+		}
+	}
+	
+	if (markedReqInfra != undefined) {
+		if (markedBPInfra != undefined) {
+			//merge resources
+			for (var infra in markedReqInfra) {
+				markedBPInfra.push(markedReqInfra[infra]);
+			}
+			blueprint.COOKBOOK_APPENDIX.Resources.infrastructures = markedBPInfra;
+		} else {
+			//add marked application requirements resources to blueprint
+			if (blueprint.COOKBOOK_APPENDIX == undefined) {
+				blueprint.COOKBOOK_APPENDIX = {};
+			}
+			if (blueprint.COOKBOOK_APPENDIX.Resources == undefined) {
+				blueprint.COOKBOOK_APPENDIX.Resources = {};
+			}
+			blueprint.COOKBOOK_APPENDIX.Resources.infrastructures = markedReqInfra;
+		}
+	} else {
+		if (markedBPInfra != undefined) {
+			//update blueprint with marked resources
+			blueprint.COOKBOOK_APPENDIX.Resources.infrastructures = markedBPInfra;
+		}
+	}
+	
+	return blueprint;
+}
 
 function compare(a, b) {
     if (a.score > b.score)
