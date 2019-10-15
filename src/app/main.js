@@ -155,7 +155,7 @@ function filter(requirements, list, apiVersion) {
 			//return blueprint with rank and pruned goal trees
 			var item = {
 				blueprint: mergeCookBook(blueprint,requirements),
-				score: 1,
+				score: scores.reduce(function(a, b) { return a + b; }) / scores.length ,
 				methodNames: validMethods
 			};
 			resultSet.push(item);
