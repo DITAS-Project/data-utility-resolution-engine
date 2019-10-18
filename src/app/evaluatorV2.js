@@ -327,10 +327,9 @@ exports.assessProperty = function assessProperty(requirementProperty, blueprintP
 }
 
 exports.invokePSE = function assessPSE(goalRequirement, blueprintAttribute) {
-
 	//temporary workaround for PSE bug in assessing ACLs, remove once bug is fixed
 	//START WORKAROUND
-	if (goalRequirement.type = "Protocol") {
+	if (goalRequirement.type == "Protocol") {
 		return 1;
 	}
 	//END WORKAROUND
