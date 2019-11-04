@@ -102,7 +102,7 @@ function filter(requirements, list, apiVersion) {
 		var scores = [];
 		blueprint.ABSTRACT_PROPERTIES = [];
 
-        if (apiVersion == ranker.API_V2 && blueprint.INTERNAL_STRUCTURE != undefined) {
+        if (apiVersion == ranker.API_V2 && blueprint.INTERNAL_STRUCTURE != undefined && requirements.methodsOutput != undefined) {
             blueprint = dqHandler.computeOutputPDU(requirements, blueprint);
         }
 
