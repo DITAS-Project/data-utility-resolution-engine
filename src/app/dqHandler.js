@@ -23,18 +23,15 @@ const dqApplications = ["regression", "classification", "clustering", "associati
 var exports = module.exports = {};
 
 var config = require('./config.json');
+var request = require('sync-request');
 var dur_module_url = config.DUREndpoint;
 var due_module_url = config.DUEEndpoint;
 
-function invokeDUR(goalRequirement, blueprintAttribute) {
+function invokeDUR(requestBody) {
 
-    var args = {
-        requirement: goalRequirement,
-        blueprintAttributes: [blueprintAttribute]
-    };
-
+	
     var res = request('POST', dur_module_url, {
-        json: args
+        json: requestBody
     });
 
     var body = JSON.parse(res.body);
@@ -42,11 +39,8 @@ function invokeDUR(goalRequirement, blueprintAttribute) {
     console.log("data are " + body);
     console.log("length is " + body.length)
 
-    if (body.length > 0) {
-        return 1;
-    } else {
-        return 0;
-    }
+	console.log(body.completeness)
+	return body;
 
 } 
 
@@ -68,12 +62,97 @@ function invokeDUE(blueprint) {
     return body;
 }
 
-exports.rebalanceGoalTree = function rebalanceGoalTree(requirements) {
-    //TODO ripesatura goal tree + invocazione webservice DUR per calcolo pesi
+function replaceWeight(node,attributes,weights){
+	//recursively invoke method for child goals
+	var targetNode = {};
+    var leaves = [];
+    var children = [];
+	targetNode.type = node.type;
+    for (var child in node.children) {
+		ret = replaceWeight(node.children[child],attributes,weights);
+		if (ret !== undefined) {
+            if (ret.leaves === undefined) {
+                //returned node is a leaf goal
+                leaves.push(ret);
+            } else {
+                children.push(ret);
+            }
+        }
+	}
+	//check if leaf goals predicate on DQ metrics:
+	var newLeaves = [];
+	for (var leaf in node.leaves) {
+		//find attribute corresponding to the one defined in leaf goal
+		for (var goalAttribute in node.leaves[leaf].attributes){
+			for (var attribute in attributes) {
+				if (node.leaves[leaf].attributes[goalAttribute] == attributes[attribute].id) {
+					//check if attribute contains DQ properties whose weight has to be changed
+					if(weights !== undefined){
+						for (var weight in weights) {
+							if(attributes[attribute].properties[weight] != undefined){
+								//property weight has to be changed
+								node.leaves[leaf].weight = weights[weight];
+							}
+						}
+					}
+				}
+			}
+		}
+		if (node.leaves[leaf].weight > 0 || node.leaves[leaf].weight == undefined) {
+			leaves.push(node.leaves[leaf]);	
+		}
+	}
+	
+	if (leaves.length === 0 && children.length === 0) {
+        //if current node has no child node and no leaf goal accepted, then discard it
+        return undefined;
+    } else if (leaves.length === 0 && children.length === 1) {
+        return children[0];
+    } else if (leaves.length === 1 && children.length === 0) {
+        return leaves[0];
+    } else {
 
-    if (requirements.applicationType in dqApplications) {
-        //
+        if (children.length > 0) {
+            targetNode.children = children;
+        }
+        if (leaves.length > 0) {
+            targetNode.leaves = leaves;
+        }
+        //return result to parent node
+        return targetNode;
     }
+}
+
+exports.rebalanceGoalTree = function rebalanceGoalTree(requirements) {
+    
+	var weights = {};
+	
+	var requestBody = { "application": requirements.applicationType,
+		"datautility": {}
+	}
+	
+	for (var prop in dqMetrics) {
+		requestBody.datautility[dqMetrics[prop]] = 0;
+	}
+	
+    if (dqApplications.includes(requirements.applicationType)) {
+		dureqs = requirements.attributes.dataUtility;
+		for (var req in dureqs) {
+			for (var prop in dqMetrics) {
+				if (dureqs[req].properties[dqMetrics[prop]] != undefined) {
+					requestBody.datautility[dqMetrics[prop]] = 1;
+				}
+			}
+		}    
+		console.log(requestBody);
+		console.log(JSON.stringify(requirements.goalTrees.dataUtility));
+	
+		weights = invokeDUR(requestBody);
+	
+	}
+	requirements.goalTrees.dataUtility = replaceWeight(requirements.goalTrees.dataUtility,requirements.attributes.dataUtility,weights);
+	
+	console.log(JSON.stringify(requirements.goalTrees.dataUtility));
 
     return requirements;
 }
@@ -141,7 +220,7 @@ exports.computeOutputPDU = function computeOutputPDU(requirements, blueprint) {
 			console.log("analyzing " + bpMethod);
             if (bpMethods[bpMethod].method_id === reqMethods[methodName].method_id) { //requested method exists in blueprint
                 console.log("found match");
-				bpMethods[bpMethod].attributes = reqMethods[methodName].attributes;
+				blueprint.INTERNAL_STRUCTURE.Testing_Output_Data[bpMethod].attributes = reqMethods[methodName].attributes;
                 changed = true;
             }
         }
