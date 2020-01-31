@@ -86,6 +86,14 @@ function filter(requirements, list, apiVersion) {
     treePruner.setApiLevel(apiVersion);
     var resultSet = [];
 
+	if (apiVersion == ranker.API_V2 && requirements.methodsOutput != undefined) {
+		for (var listitem in list) {
+			if (list[listitem].blueprint.INTERNAL_STRUCTURE != undefined) {
+				list[listitem].blueprint = dqHandler.computeOutputPDU(requirements, list[listitem].blueprint);
+			}
+		}
+    }
+	
     if (requirements.attributes != undefined) {
 		//identify best value for each attribute (considering all blueprints)
 		
@@ -102,10 +110,7 @@ function filter(requirements, list, apiVersion) {
 		var scores = [];
 		blueprint.ABSTRACT_PROPERTIES = [];
 
-        if (apiVersion == ranker.API_V2 && blueprint.INTERNAL_STRUCTURE != undefined && requirements.methodsOutput != undefined) {
-            blueprint = dqHandler.computeOutputPDU(requirements, blueprint);
-        }
-
+        
         var methods = blueprint.DATA_MANAGEMENT;
         for (var methodName in methodNames) {
             for (var method in methods) {

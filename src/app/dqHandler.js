@@ -46,12 +46,8 @@ function invokeDUR(requestBody) {
 
 function invokeDUE(blueprint) {
 
-    var args = {
-        blueprint: blueprint
-    };
-
     var res = request('POST', due_module_url, {
-        json: args
+        json: blueprint
     });
 
     var body = JSON.parse(res.body);
@@ -216,14 +212,18 @@ exports.computeOutputPDU = function computeOutputPDU(requirements, blueprint) {
 	
 	for (var methodName in reqMethods) {
 		console.log("analyzing " + methodName);
-        for (var bpMethod in bpMethods) {
-			console.log("analyzing " + bpMethod);
-            if (bpMethods[bpMethod].method_id === reqMethods[methodName].method_id) { //requested method exists in blueprint
-                console.log("found match");
-				blueprint.INTERNAL_STRUCTURE.Testing_Output_Data[bpMethod].attributes = reqMethods[methodName].attributes;
-                changed = true;
-            }
-        }
+		if (reqMethods[methodName].attributes !== undefined) {
+			if (reqMethods[methodName].attributes.length > 0) {
+				for (var bpMethod in bpMethods) {
+					console.log("analyzing " + bpMethod);
+					if (bpMethods[bpMethod].method_id === reqMethods[methodName].method_id) { //requested method exists in blueprint
+						console.log("found match");
+						blueprint.INTERNAL_STRUCTURE.Testing_Output_Data[bpMethod].attributes = reqMethods[methodName].attributes;
+						changed = true;
+					}
+				}
+			}
+		}
     }
     if (changed) { //only some output attributes are required
         //invoke DUE webservice
