@@ -228,7 +228,7 @@ exports.computeOutputPDU = function computeOutputPDU(requirements, blueprint) {
     if (changed) { //only some output attributes are required
         //invoke DUE webservice
 		//*** uncomment the following line once the DUE has been deployed ***
-        //return invokeDUE(blueprint);
+        return invokeDUE(blueprint);
     }
     return blueprint;
 }
